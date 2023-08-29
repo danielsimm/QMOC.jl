@@ -526,11 +526,10 @@ function DHC_TMI(state, L; algo=Val(:rref))
 end
 
 function DHC_observables(state; algo = Val(:rref)) # returns EE, TMI, multithreaded
-    state = deepcopy(state)
     N = nqubits(state)
     L = Int(sqrt(N/6))
     if mod(L, 4) != 0
-        @info "L must be a multiple of 4, but is $(numberOfQubits). Tripartite mutual information is ill-defined."
+        @info "L must be a multiple of 4, but is $(N). Tripartite mutual information is ill-defined."
     end
     results = zeros(L+1+7)
     subsystems = [DHC_subsystem(L, 1:i) for i in 1:L]
@@ -545,10 +544,46 @@ function DHC_observables(state; algo = Val(:rref)) # returns EE, TMI, multithrea
     push!(subsystems, union(A,C))
     push!(subsystems, union(A, B, C))
     Threads.@threads for i in eachindex(subsystems)
-        results[i+1] = entanglement_entropy(state, subsystems[i], algo)
+        results[i+1] = entanglement_entropy(copy(state), subsystems[i], algo)
     end
     EE = results[1:L+1]
     TMI = results[L+2] + results[L+3] + results[L+4] - results[L+5] - results[L+6] - results[L+7] + results[L+8]
     return EE, TMI
 end
 
+
+### Benchmark
+state = DHC_initial_state(48)
+function DHC_benchmark_evolution(state)
+    for i in 1:3
+        _DHC_XYZ_timestep!(state, 0.1, 0.1, 0.1)
+    end
+    return nothing
+end
+
+function DHC_benchmark_observables(state)
+    EE, TMI = DHC_observables(state)
+    return nothing
+end
+
+function DHC_benchmark_async(state)
+    for _ in 1:10
+        for i in 1:3
+            _DHC_XYZ_timestep!(state, 0.1, 0.1, 0.1)
+        end
+        @async DHC_observables(state)
+    end
+end
+
+function DHC_benchmark_serial(state)
+    for _ in 1:10
+        for i in 1:3
+            _DHC_XYZ_timestep!(state, 0.1, 0.1, 0.1)
+        end
+        DHC_observables(state)
+    end
+end
+
+@benchmark DHC_benchmark_async(DHC_initial_state(12))
+
+@benchmark DHC_benchmark_serial(DHC_initial_state(12))
