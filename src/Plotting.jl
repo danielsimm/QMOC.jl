@@ -64,12 +64,22 @@ end
 
 function operatorqubits(operator::PauliOperator)
     qubits = []
+    strings = []
     for i in eachindex(operator)
         if operator[i][1] || operator[i][2]
             push!(qubits, i)
+            if operator[i][1]
+                if operator[i][2]
+                    push!(strings, "Y")
+                else
+                    push!(strings, "X")
+                end
+            else
+                push!(strings, "Z")
+            end
         end
     end
-    return qubits
+    return qubits, strings
 end
 
 function HC_plot_lattice(lattice::Vector{HCSite}, highlight = nothing; label=false)
@@ -106,7 +116,7 @@ function HC_plot_lattice(lattice::Vector{HCSite}, highlight = nothing; label=fal
             translate!(text,0,0,2)
         end
     end
-    if highlight != nothing
+    if highlight !== nothing
         for i in eachindex(highlight)
             x = lattice[highlight[i]].cartesianx
             y = lattice[highlight[i]].cartesiany
@@ -158,7 +168,7 @@ function HC_plot_lattice_kekule(lattice::Vector{HCSite}, highlight=nothing; labe
             translate!(text,0,0,2)
         end
     end
-    if highlight != nothing
+    if highlight !== nothing
         for i in eachindex(highlight)
             x = lattice[highlight[i]].cartesianx
             y = lattice[highlight[i]].cartesiany
@@ -203,7 +213,7 @@ function DHC_plot_lattice(lattice, highlight = nothing; label=false)
             translate!(text,0,0,2)
         end
     end
-    if highlight != nothing
+    if highlight !== nothing
         for i in eachindex(highlight)
             x = lattice[highlight[i]].cartesianx
             y = lattice[highlight[i]].cartesiany
@@ -211,6 +221,102 @@ function DHC_plot_lattice(lattice, highlight = nothing; label=false)
         end
     end
 
+    hidedecorations!(ax)
+    hidespines!(ax)
+    return fig
+end
+
+function DHC_plot_lattice(lattice, highlight::QuantumClifford.PauliOperator; label=false)
+    background = RGBf(236/256, 240/256, 241/256)
+    latticeblack = RGBf(28/256, 40/256, 51/256)
+    latticered = RGBf(231/256, 76/256, 60/256)
+    latticegreen = RGBf(33/256, 199/256, 135/256)
+    latticeblue = RGBf(52/256, 152/256, 219/256)
+    fig = Figure(resolution = (800, 800), backgroundcolor = background)
+    ax = Axis(fig[1, 1], aspect = DataAspect(), backgroundcolor = background)
+    L = Int(sqrt(div(length(lattice), 6)))
+    for i in eachindex(lattice)
+        x = lattice[i].cartesianx
+        y = lattice[i].cartesiany
+        xneighbourx = lattice[lattice[i].xneighbour].cartesianx
+        xneighboury = lattice[lattice[i].xneighbour].cartesiany
+        yneighbourx = lattice[lattice[i].yneighbour].cartesianx
+        yneighboury = lattice[lattice[i].yneighbour].cartesiany
+        zneighbourx = lattice[lattice[i].zneighbour].cartesianx
+        zneighboury = lattice[lattice[i].zneighbour].cartesiany
+        lines!(ax, [x, xneighbourx], [y, xneighboury], color=latticered, linewidth=4.0)
+        if !(abs(x - yneighbourx) > 1.1)
+            lines!(ax, [x, yneighbourx], [y, yneighboury], color=latticegreen, linewidth=4.0)
+        end
+        if !(abs(y - zneighboury) > 1.5)
+            lines!(ax, [x, zneighbourx], [y, zneighboury], color=latticeblue, linewidth=4.0)
+        end
+        point = scatter!(ax, x, y, markersize = 80/L, color=latticeblack)
+        translate!(point,0,0,1)
+        if label
+            text = text!(x, y, text = "$(lattice[i].lindex)", color=:white, align=(:center, :center))
+            translate!(text,0,0,2)
+        end
+    end
+    for i in eachindex(operatorqubits(highlight)[1])
+        qubit = operatorqubits(highlight)[1][i]
+        string = operatorqubits(highlight)[2][i]
+        x = lattice[qubit].cartesianx
+        y = lattice[qubit].cartesiany
+        point = scatter!(ax, x, y, markersize = 120/L, color=(:yellow, 1.0))
+        translate!(point,0,0,2)
+        text = text!(x, y, text = string, color=:black, align=(:center, :center))
+        translate!(text,0,0,3)
+    end
+    hidedecorations!(ax)
+    hidespines!(ax)
+    return fig
+end
+
+function DHC_plot_lattice(lattice, highlights::Vector{QuantumClifford.PauliOperator}; label=false)
+    background = RGBf(236/256, 240/256, 241/256)
+    latticeblack = RGBf(28/256, 40/256, 51/256)
+    latticered = RGBf(231/256, 76/256, 60/256)
+    latticegreen = RGBf(33/256, 199/256, 135/256)
+    latticeblue = RGBf(52/256, 152/256, 219/256)
+    fig = Figure(resolution = (800, 800), backgroundcolor = background)
+    ax = Axis(fig[1, 1], aspect = DataAspect(), backgroundcolor = background)
+    L = Int(sqrt(div(length(lattice), 6)))
+    for i in eachindex(lattice)
+        x = lattice[i].cartesianx
+        y = lattice[i].cartesiany
+        xneighbourx = lattice[lattice[i].xneighbour].cartesianx
+        xneighboury = lattice[lattice[i].xneighbour].cartesiany
+        yneighbourx = lattice[lattice[i].yneighbour].cartesianx
+        yneighboury = lattice[lattice[i].yneighbour].cartesiany
+        zneighbourx = lattice[lattice[i].zneighbour].cartesianx
+        zneighboury = lattice[lattice[i].zneighbour].cartesiany
+        lines!(ax, [x, xneighbourx], [y, xneighboury], color=latticered, linewidth=4.0)
+        if !(abs(x - yneighbourx) > 1.1)
+            lines!(ax, [x, yneighbourx], [y, yneighboury], color=latticegreen, linewidth=4.0)
+        end
+        if !(abs(y - zneighboury) > 1.5)
+            lines!(ax, [x, zneighbourx], [y, zneighboury], color=latticeblue, linewidth=4.0)
+        end
+        point = scatter!(ax, x, y, markersize = 80/L, color=latticeblack)
+        translate!(point,0,0,1)
+        if label
+            text = text!(x, y, text = "$(lattice[i].lindex)", color=:white, align=(:center, :center))
+            translate!(text,0,0,2)
+        end
+    end
+    for highlight in highlights
+        for i in eachindex(operatorqubits(highlight)[1])
+            qubit = operatorqubits(highlight)[1][i]
+            string = operatorqubits(highlight)[2][i]
+            x = lattice[qubit].cartesianx
+            y = lattice[qubit].cartesiany
+            point = scatter!(ax, x, y, markersize = 120/L, color=(:yellow, 1.0))
+            translate!(point,0,0,2)
+            text = text!(x, y, text = string, color=:black, align=(:center, :center))
+            translate!(text,0,0,3)
+        end
+    end
     hidedecorations!(ax)
     hidespines!(ax)
     return fig

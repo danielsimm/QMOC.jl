@@ -183,30 +183,22 @@ function _DHC_smallloop_sites(L)
 end
 
 function _DHC_wilsonline_sites(L)
-    loop1 = zeros(Int, 4*L)
-    loop1[1] = 6
-    for i in 2:4*L
-        if mod1(i, 4) == 2
-            loop1[i] = _DHC_yneighbour(loop1[i-1], L)
-        elseif mod1(i, 4) == 3
+    loop1 = zeros(Int, 6*L)
+    loop1[1] = 1
+    for i in 2:6*L
+        if iseven(i)
             loop1[i] = _DHC_xneighbour(loop1[i-1], L)
-        elseif mod1(i, 4) == 4
-            loop1[i] = _DHC_yneighbour(loop1[i-1], L)
-        elseif mod1(i, 4) == 1
+        else
             loop1[i] = _DHC_zneighbour(loop1[i-1], L)
         end
     end
 
-    loop2 = zeros(Int, 4*L)
+    loop2 = zeros(Int, 6*L)
     loop2[1] = 1
-    for i in 2:4*L
-        if mod1(i, 4) == 2
-            loop2[i] = _DHC_zneighbour(loop2[i-1], L)
-        elseif mod1(i, 4) == 3
+    for i in 2:6*L
+        if iseven(i)
             loop2[i] = _DHC_xneighbour(loop2[i-1], L)
-        elseif mod1(i, 4) == 4
-            loop2[i] = _DHC_zneighbour(loop2[i-1], L)
-        elseif mod1(i, 4) == 1
+        else
             loop2[i] = _DHC_yneighbour(loop2[i-1], L)
         end
     end
@@ -279,27 +271,36 @@ function _DHC_wilsonline_operators(L) :: Vector{PauliOperator}
     operators = Vector{PauliOperator}(undef, 2)
     Xarr = falses(N)
     Zarr = falses(N)
-    types = _generate_pattern_2(length(loop1))
+    # types = _generate_pattern_2(length(loop1))
+    # for i in eachindex(loop1)
+    #     site = loop1[i]
+    #     if types[i] == :X
+    #         Xarr[site] = true
+    #     elseif types[i] == :Z
+    #         Zarr[site] = true
+    #     end
+    # end
     for i in eachindex(loop1)
         site = loop1[i]
-        if types[i] == :X
-            Xarr[site] = true
-        elseif types[i] == :Z
-            Zarr[site] = true
-        end
+        Xarr[site] = true
+        Zarr[site] = true
     end
     operators[1] = PauliOperator(0x00, Xarr, Zarr)
     Xarr = falses(N)
     Zarr = falses(N)
-    types = _generate_pattern_1(length(loop2))
+    # types = _generate_pattern_1(length(loop2))
+    # for i in eachindex(loop2)
+    #     site = loop2[i]
+    #     if types[i] == :X
+    #         Xarr[site] = true
+    #     elseif types[i] == :Y
+    #         Xarr[site] = true
+    #         Zarr[site] = true
+    #     end
+    # end
     for i in eachindex(loop2)
         site = loop2[i]
-        if types[i] == :X
-            Xarr[site] = true
-        elseif types[i] == :Y
-            Xarr[site] = true
-            Zarr[site] = true
-        end
+        Zarr[site] = true
     end
     operators[2] = PauliOperator(0x00, Xarr, Zarr)
     return operators
@@ -368,7 +369,8 @@ function DHC_initial_state(L)
     return MixedDestabilizer(Stabilizer(stabs))
 end
 
-QuantumClifford.trusted_rank(DHC_initial_state(12))
+QuantumClifford.trusted_rank(DHC_initial_state(4))
+nqubits(DHC_initial_state(4))
 
 function _DHC_randomXXmeasurement!(state::QuantumClifford.AbstractStabilizer)
     N = nqubits(state)
@@ -521,5 +523,32 @@ function DHC_TMI(state, L; algo=Val(:rref))
     SAC = entanglement_entropy(state, union(A,C), algo)
     SABC = entanglement_entropy(state, union(A, B, C), algo)
     return SA + SB + SC - SAB - SBC - SAC + SABC
+end
+
+function DHC_observables(state; algo = Val(:rref)) # returns EE, TMI, multithreaded
+    state = deepcopy(state)
+    N = nqubits(state)
+    L = Int(sqrt(N/6))
+    if mod(L, 4) != 0
+        @info "L must be a multiple of 4, but is $(numberOfQubits). Tripartite mutual information is ill-defined."
+    end
+    results = zeros(L+1+7)
+    subsystems = [DHC_subsystem(L, 1:i) for i in 1:L]
+    A = DHC_subsystem(L, 1:Int(L/4))
+    B = DHC_subsystem(L, Int(L/4)+1:Int(L/2))
+    C = DHC_subsystem(L, Int(L/2)+1:Int(3L/4))
+    push!(subsystems, A)
+    push!(subsystems, B)
+    push!(subsystems, C)
+    push!(subsystems, union(A,B))
+    push!(subsystems, union(B,C))
+    push!(subsystems, union(A,C))
+    push!(subsystems, union(A, B, C))
+    Threads.@threads for i in eachindex(subsystems)
+        results[i+1] = entanglement_entropy(state, subsystems[i], algo)
+    end
+    EE = results[1:L+1]
+    TMI = results[L+2] + results[L+3] + results[L+4] - results[L+5] - results[L+6] - results[L+7] + results[L+8]
+    return EE, TMI
 end
 
