@@ -321,3 +321,54 @@ function DHC_plot_lattice(lattice, highlights::Vector{QuantumClifford.PauliOpera
     hidespines!(ax)
     return fig
 end
+
+function voronoi_tesselation_plot(positions, values, r=0)
+    posterblue = colorant"#3498DB";
+    postergreen = colorant"#46AD77";
+    posterred = colorant"#E74C3C";
+    posterblack = colorant"#1C2833";
+    posterdarkblue = colorant"#2980B9";
+    posterdark = colorant"#2C3E50";
+    background = colorant"#ECF0F1";
+    highlightcolor = colorant"#F29325";
+    postercolormap1 = ColorScheme(range(posterred, posterblue));
+    unique_indices = unique(i -> positions[i], eachindex(positions))
+    unique_positions = positions[unique_indices]
+    unique_values = values[unique_indices]
+    unique_colors = get(postercolormap1, (unique_values.+1)./2)
+    x_pos = [p[1] for p in unique_positions] .+1
+    y_pos = [p[2] for p in unique_positions] .+1
+
+    fig = Figure(backgroundcolor = background)
+    axis = Axis(fig[1,1],aspect=1)
+    xlims!(axis, 0.9, 2.1)
+    ylims!(axis, 0.9, sqrt(3)/2+1+0.1)
+
+    hidedecorations!(axis)
+    hidespines!(axis)
+    
+    voronoiplot!(axis, Float64.(x_pos), Float64.(y_pos), Float64.(unique_values), show_generators=false, strokewidth=0.01, colormap = postercolormap1, unbounded_edge_extension_factor = 0.01)
+    
+    triangle = Point2f[(1,1),(1.5,sqrt(3)/2+1),(2,1),(1,1)]
+    poly!(Polygon(Point2f[(0.5, 0.5), (2.5, 0.5), (2.5, 2.5), (0.5, 2.5)], [triangle]), color = background)
+    lines!(axis,triangle,color=:black, linewidth=1)
+    
+    text!(axis, 1+0.5, 1+sqrt(3)/2+0.05, text=L"p_z", fontsize=40, align=(:center, :center))
+    text!(axis, 1-0.05, 1-0.05, text=L"p_x", fontsize=40, align=(:center, :center))
+    text!(axis, 1+1.05, 1-0.05, text=L"p_y", fontsize=40, align=(:center, :center))
+    #scatter!(axis, parametric_to_cartesian(transition_point1)[1]+1, parametric_to_cartesian(transition_point1)[2]+1, markersize=30, color=(highlightcolor))
+    #scatter!(axis, parametric_to_cartesian(transition_point2)[1]+1, parametric_to_cartesian(transition_point2)[2]+1, markersize=30, color=(highlightcolor))
+    Colorbar(fig[1,2], limits=(-1,1),colormap = postercolormap1, label=L"I(A:B:C)", labelsize=25, alignmode=Outside(), height=400, width=25, tellheight=false, #=ticklabelfont=:LaTeX,=# ticklabelsize=20)
+    #circle = parameter_circle(0.365)
+    #lines!(axis, circle[1].+1, circle[2].+1, color=:black, linewidth=1)
+    #title = Label(fig[0, :], "Kekulé-Kitaev model phase diagram", fontsize = 40, font=:LaTeX, padding=(0.0f0, 0.0f0, -30.0f0, 0.0f0))
+    #lines!(parameter_circles2(r)[1] .+1, parameter_circles2(r)[2] .+1, color=:black, linewidth=4)
+    #lines!(parameter_circles2(r)[3] .+1, parameter_circles2(r)[4] .+1, color=:black, linewidth=4)
+    #lines!(parameter_circles2(r)[5] .+1, parameter_circles2(r)[6] .+1, color=:black, linewidth=4)
+    return fig
+end
+
+parameter_set = parameter_full(15)
+positions = parametric_to_cartesian.(parameter_set)
+values = [load("data/YaoKivelsonXYZ/full/L=12/param_$(i).jld2")["TMI"] for i in eachindex(parameter_set)]
+fig = voronoi_tesselation_plot(positions, values)

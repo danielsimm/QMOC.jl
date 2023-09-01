@@ -1,6 +1,5 @@
 using QuantumClifford
 using JLD2
-cd("Master")
 include("src/Honeycomb.jl")
 include("src/Decorated Honeycomb.jl")
 include("src/Chain.jl")

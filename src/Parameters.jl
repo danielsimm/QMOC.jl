@@ -109,3 +109,34 @@ function parameter_circle(radius)
 end
 
 # px critical: parameter_line([47//57, 5//57, 5//57], [29//57, 14//57, 14//57], 20)
+
+function symmetry_data_extension(parameter_set, data)
+    permutations = [[1,2,3], [2,1,3], [2,3,1], [3,2,1], [3,1,2], [1,3,2]]
+    data_output = []
+    parameter_output = []
+    for permutation in permutations
+        for i in eachindex(parameter_set)
+            push!(data_output, data[i])
+            push!(parameter_output, [parameter_set[i][permutation[1]] parameter_set[i][permutation[2]] parameter_set[i][permutation[3]]])
+        end
+    end
+    return parameter_output, data_output
+end
+
+function symmetry_data_extension(parameter_set)
+    permutations = [[1,2,3], [2,1,3], [2,3,1], [3,2,1], [3,1,2], [1,3,2]]
+    parameter_output = []
+    for permutation in permutations
+        for i in eachindex(parameter_set)
+            push!(parameter_output, [parameter_set[i][permutation[1]] parameter_set[i][permutation[2]] parameter_set[i][permutation[3]]])
+        end
+    end
+    return unique(parameter_output)
+end
+
+
+function parameter_full(resolution)
+    wedge = parameter_wedge(resolution)
+    full = symmetry_data_extension(wedge)
+    return full
+end

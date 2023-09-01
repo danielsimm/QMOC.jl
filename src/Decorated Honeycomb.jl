@@ -306,71 +306,27 @@ function _DHC_wilsonline_operators(L) :: Vector{PauliOperator}
     return operators
 end
 
-function _generate_pattern_1(n)
-    out = []
-    patterns = [:Y, :X, :X, :Y]
-    pattern_idx = 1
-    for i in 1:n
-        push!(out, patterns[pattern_idx])
-        pattern_idx = mod(pattern_idx % 4 + 1, 5)
-    end
-    return out
-end
-
-function _generate_pattern_2(n)
-    out = []
-    patterns = [:Z, :X, :X, :Z]
-    pattern_idx = 1
-    for i in 1:n
-        push!(out, patterns[pattern_idx])
-        pattern_idx = mod(pattern_idx % 4 + 1, 5)
-    end
-    return out
-end
-
-_generate_pattern_1(10)
-
 function _DHC_ZZ_operators(L) :: Vector{PauliOperator}
     N = 6*L^2
-    operators = Vector{PauliOperator}(undef, Int(N/2))
-    for i in 1:2:N
+    operators = []
+    for i in 1:2:N # 3:6:N
         Xarr = falses(N)
         Zarr = falses(N)
         Zarr[i] = true
         Zarr[_DHC_zneighbour(i,L)] = true
-        operators[Int((i+1)/2)] = PauliOperator(0x00, Xarr, Zarr)
+        push!(operators, PauliOperator(0x00, Xarr, Zarr))
     end
     return operators
 end
 
-
-# function DHC_initial_state_old(L)
-#     stab = one(MixedDestabilizer, 6*L^2)
-#     for op in _DHC_ZZ_operators(L)
-#         project!(stab, op, keep_result=false, phases=false)
-#     end
-#     for op in _DHC_largeloop_operators(L)
-#         project!(stab, op, keep_result=false, phases=false)
-#     end
-#     for op in _DHC_smallloop_operators(L)
-#         project!(stab, op, keep_result=false, phases=false)
-#     end
-#     for op in _DHC_wilsonline_operators(L)
-#         project!(stab, op, keep_result=false, phases=false)
-#     end
-#     if QuantumClifford.trusted_rank(stab) != 6*L^2
-#         println("Error: initial state is not pure!")
-#     end 
-#     return stab
-# end
-
 function DHC_initial_state(L)
     stabs = [_DHC_ZZ_operators(L)..., _DHC_largeloop_operators(L)..., _DHC_smallloop_operators(L)..., _DHC_wilsonline_operators(L)...]
-    return MixedDestabilizer(Stabilizer(stabs))
+    state = MixedDestabilizer(Stabilizer(stabs))
+    if QuantumClifford.trusted_rank(state) != 6*L^2
+        @warn "Initial state is not pure."
+    end
+    return state
 end
-
-QuantumClifford.trusted_rank(DHC_initial_state(4))
-nqubits(DHC_initial_state(4))
 
 function _DHC_randomXXmeasurement!(state::QuantumClifford.AbstractStabilizer)
     N = nqubits(state)
@@ -466,8 +422,6 @@ function _DHC_randomlargeloopmeasurement!(state::QuantumClifford.AbstractStabili
     project!(state, PauliOperator(0x00, Xarr, Zarr), keep_result=false, phases=false)
 end
 
-QuantumClifford.trusted_rank(DHC_initial_state(12))
-6*12^2
 
 ### Dynamics ###
 
@@ -553,7 +507,6 @@ end
 
 
 ### Benchmark
-state = DHC_initial_state(48)
 function DHC_benchmark_evolution(state)
     for i in 1:3
         _DHC_XYZ_timestep!(state, 0.1, 0.1, 0.1)
@@ -583,7 +536,3 @@ function DHC_benchmark_serial(state)
         DHC_observables(state)
     end
 end
-
-@benchmark DHC_benchmark_async(DHC_initial_state(12))
-
-@benchmark DHC_benchmark_serial(DHC_initial_state(12))

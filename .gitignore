@@ -25,3 +25,5 @@ Manifest.toml
 
 # macOS Finder helpers
 *.DS_Store
+
+data/
