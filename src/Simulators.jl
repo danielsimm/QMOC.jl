@@ -25,23 +25,23 @@ function _id(setup::Setup, index::Int64, trajectory::Int64)
     return "$(setup.mode)_$(setup.name)_$(setup.size)_$(trajectory)"*param_string
 end
 
-function _update_checkpoint(state, id, time)
-    filename = "data/checkpoints/$(hash(id)).jld2" 
-    if isfile(filename)
-        if time < jldopen(filename, "r") do file
-            file["time"]
-        end
-            jldopen(filename, "a+") do file
-                file["state"] = state
-                file["time"] = time
-            end
-        end
-        # load
-        # return state
-    # else
-        # (@async) save checkpoint (state, id, time) -> overwrite
-        # return nothing
-end
+# function _update_checkpoint(state, id, time)
+#     filename = "data/checkpoints/$(hash(id)).jld2" 
+#     if isfile(filename)
+#         if time < jldopen(filename, "r") do file
+#             file["time"]
+#         end
+#             jldopen(filename, "a+") do file
+#                 file["state"] = state
+#                 file["time"] = time
+#             end
+#         end
+#         # load
+#         # return state
+#     # else
+#         # (@async) save checkpoint (state, id, time) -> overwrite
+#         # return nothing
+# end
 
 # function _filehandling(setup::Setup)
 #     if !(isempty("data/$(setup.mode)/$(setup.name)/L=$(setup.)")

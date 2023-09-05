@@ -2,12 +2,14 @@ module LatticeCircuits
 
 using QuantumClifford
 using JLD2
-include("src/Honeycomb.jl")
-include("src/Decorated Honeycomb.jl")
-include("src/Chain.jl")
-include("src/Parameters.jl")
-include("src/Trajectories.jl")
-include("src/Simulators.jl")
+include("Honeycomb.jl")
+include("Decorated Honeycomb.jl")
+include("Chain.jl")
+include("Parameters.jl")
+include("Trajectories.jl")
+include("Simulators.jl")
+
+export HClattice
 # Write your package code here.
 
 end
