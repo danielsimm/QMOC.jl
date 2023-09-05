@@ -315,6 +315,10 @@ function HC_initial_state(L::Int64)
     return MixedDestabilizer(Stabilizer(stabs))
 end
 
+function initialise(trajectory::HoneycombTrajectory)
+    return HC_initial_state(trajectory.size)
+end
+
 function _HC_randomXXmeasurement!(state::QuantumClifford.AbstractStabilizer)
     N = nqubits(state)
     L = Int(sqrt(N/2))

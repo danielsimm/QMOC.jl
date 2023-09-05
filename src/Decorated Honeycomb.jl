@@ -363,6 +363,10 @@ function DHC_initial_state(L, basis=:Z) :: MixedDestabilizer
     return state
 end
 
+function initialise(trajectory::DecoratedHoneycombTrajectory)
+    return DHC_initial_state(trajectory.size)
+end
+
 function _DHC_randomXXmeasurement!(state::QuantumClifford.AbstractStabilizer)
     N = nqubits(state)
     L = Int(sqrt(N/6))

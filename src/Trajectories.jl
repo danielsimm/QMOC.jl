@@ -1,42 +1,59 @@
 abstract type Trajectory end
 abstract type HoneycombTrajectory <: Trajectory end
-abstract type ChainTrajectory <: Trajectory end
 abstract type DecoratedHoneycombTrajectory <: Trajectory end
 struct KitaevTrajectory <: HoneycombTrajectory
     size::Int
+    nqubits::Int
     name::String
     params::Vector{Real}
     checkpoints::Bool
     verbosity::Symbol
     index::Int64
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
 end
 
 struct KekuleTrajectory <: HoneycombTrajectory
     size::Int
+    nqubits::Int
     name::String
     params::Vector{Real}
     checkpoints::Bool
     verbosity::Symbol
     index::Int64
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
 end
 
 struct YaoKivelsonXYZTrajectory <: DecoratedHoneycombTrajectory
     size::Int
+    nqubits::Int
     name::String
     params::Vector{Real}
     checkpoints::Bool
     verbosity::Symbol
     index::Int64
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
 end
 
 struct YaoKivelsonJJTrajectory <: DecoratedHoneycombTrajectory
     size::Int
+    nqubits::Int
     name::String
     params::Vector{Real}
     checkpoints::Bool
     verbosity::Symbol
     index::Int64
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
 end
+
+
 
 
 """
@@ -61,35 +78,31 @@ TBW
 #     end
 # end
 
+function run(trajectory::Trajectory)
+    time = 0
+    # initialise
+    state = initialise(trajectory)
+    # thermalize
+    thermalize!(state, trajectory, time)
+    # measure
+    measure!(state, trajectory, time)
+end
+
+
+
+
+
+
+
+    
+
+
 function _yaokivelson_XYZ_trajectory(id, init, L, parameters, mode, checkpoints, verbose)
     px = parameters[1]
     py = parameters[2]
     pz = parameters[3]
     measurements = 100
 
-    # Check for existing checkpoints, thermalisation
-    if checkpoints && isfile("data/checkpoints/$(id).jld2")
-        state = _get_checkpoint(id)
-        if state === nothing
-            @goto loadErrThermalize
-        else
-            verbose ? (@info "Successfully loaded checkpoint $(id).") : nothing
-        end
-    else
-        if checkpoints
-            verbose ? (@info "No checkpoint found for $(id). Starting thermalisation.") : nothing
-        end
-        @label loadErrThermalize
-        state = init
-        for layer in 1:6*L
-            _DHC_XYZ_timestep!(state, px, py, pz)
-        end
-        verbose ? (@info "Thermalisation complete.") : nothing
-        if checkpoints
-            _set_checkpoint(id, state)
-            verbose ? (@info "Checkpoint $(id) saved.") : nothing
-        end
-    end
 
     ### Measurements
     entropy = zeros(measurements, L+1)
