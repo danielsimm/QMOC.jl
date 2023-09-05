@@ -1,3 +1,17 @@
+name = "LatticeCircuits"
+uuid = "21005065-d0e2-45dc-bc4c-e252d16fe0dd"
+authors = ["Daniel Simm"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
+
 [deps]
 AppleAccelerate = "13e28ba4-7ad8-5781-acae-3021b1ed3924"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
