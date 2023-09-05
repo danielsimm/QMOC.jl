@@ -3,46 +3,44 @@ using Statistics
 using Dates
 using LinearAlgebra
 
-abstract type System
+abstract type Trajectory end
+abstract type HoneycombTrajectory <: Trajectory end
+abstract type ChainTrajectory <: Trajectory end
+abstract type DecoratedHoneycombTrajectory <: Trajectory end
+struct KitaevTrajectory <: HoneycombTrajectory
     size::Int
     name::String
     params::Vector{Real}
     checkpoints::Bool
     verbosity::Symbol
-    trajectory::Int64
-end
-abstract type HoneycombSystem <: System end
-abstract type ChainSystem <: System end
-abstract type DecoratedHoneycombSystem <: System end
-struct KitaevTrajectory <: HoneycombSystem
-    
+    index::Int64
 end
 
-struct KekuleTrajectory <: HoneycombSystem
+struct KekuleTrajectory <: HoneycombTrajectory
     size::Int
     name::String
     params::Vector{Real}
     checkpoints::Bool
     verbosity::Symbol
-    trajectory::Int64
+    index::Int64
 end
 
-struct YaoKivelsonXYZTrajectory <: DecoratedHoneycombSystem
+struct YaoKivelsonXYZTrajectory <: DecoratedHoneycombTrajectory
     size::Int
     name::String
     params::Vector{Real}
     checkpoints::Bool
     verbosity::Symbol
-    trajectory::Int64
+    index::Int64
 end
 
-struct YaoKivelsonJJTrajectory <: DecoratedHoneycombSystem
+struct YaoKivelsonJJTrajectory <: DecoratedHoneycombTrajectory
     size::Int
     name::String
     params::Vector{Real}
     checkpoints::Bool
     verbosity::Symbol
-    trajectory::Int64
+    index::Int64
 end
 
 
@@ -52,7 +50,7 @@ function simulate(simulation::Simulation)
 
 end
 
-function _id(traj::System)
+function _id(traj::Trajectory)
     param = setup.params[index]
     param_string = ""
     for p in param
