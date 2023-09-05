@@ -1,9 +1,10 @@
+using LinearAlgebra
 using AppleAccelerate
 using BenchmarkTools
 include("LatticeCircuits.jl")
 
-mkpath("data")
-touch("data/benchmarks.jld2")
+# mkpath("data")
+# touch("data/benchmarks.jld2")
 
 
 ### Measurement ###
@@ -47,16 +48,48 @@ function benchmark_HC_timestep(L::Int64) # returns the time (seconds) and memory
     return mean(result).time / 1e9, mean(result).memory / 1e6
 end
 
-Ls = [i for i in 1:20]
-times = []
-for i in eachindex(Ls)
-    push!(times, benchmark_HC_timestep(Ls[i])[1])
+# Ls = [i for i in 1:20]
+# times = []
+# for i in eachindex(Ls)
+#     push!(times, benchmark_HC_timestep(Ls[i])[1])
+# end
+
+# times = times .* 1e3 # convert to milliseconds
+
+# using CairoMakie
+# using CurveFit
+
+function BLAS_benchmark(L)
+    init = HC_initial_state(L)
+    for i in 1:3*L
+        kitaev_timestep!(init, 1//3, 1//3, 1//3)
+    end
+    times_evolution = []
+    times_TMI = []
+    state = deepcopy(init)
+    BLAS.set_num_threads(1)
+    push!(times_evolution, @benchmark kitaev_timestep!($state, 1//3, 1//3, 1//3))
+    push!(times_TMI, @benchmark HC_TMI($state, $L))
+
+    state = deepcopy(init)
+    BLAS.set_num_threads(2)
+    push!(times_evolution, @benchmark kitaev_timestep!($state, 1//3, 1//3, 1//3))
+    push!(times_TMI, @benchmark HC_TMI($state, $L))
+
+    state = deepcopy(init)
+    BLAS.set_num_threads(3)
+    push!(times_evolution, @benchmark kitaev_timestep!($state, 1//3, 1//3, 1//3))
+    push!(times_TMI, @benchmark HC_TMI($state, $L))
+
+    state = deepcopy(init)
+    BLAS.set_num_threads(4)
+    push!(times_evolution, @benchmark kitaev_timestep!($state, 1//3, 1//3, 1//3))
+    push!(times_TMI, @benchmark HC_TMI($state, $L))
+
+    return times_evolution, times_TMI
 end
-
-times = times .* 1e3 # convert to milliseconds
-
-using CairoMakie
-using CurveFit
+    
 
 
 
+BLAS_benchmark(4)

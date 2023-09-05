@@ -1,4 +1,7 @@
 using CairoMakie
+using Colors
+using ColorSchemes
+using GeometryBasics
 """
     parameter_legend(parameters)
 
@@ -181,7 +184,7 @@ function HC_plot_lattice_kekule(lattice::Vector{HCSite}, highlight=nothing; labe
 end
 
 
-function DHC_plot_lattice(lattice, highlight = nothing; label=false)
+function DHC_plot_lattice(lattice::Vector{DHCSite}, highlight = nothing; label=false)
     background = RGBf(236/256, 240/256, 241/256)
     latticeblack = RGBf(28/256, 40/256, 51/256)
     latticered = RGBf(231/256, 76/256, 60/256)
@@ -226,7 +229,7 @@ function DHC_plot_lattice(lattice, highlight = nothing; label=false)
     return fig
 end
 
-function DHC_plot_lattice(lattice, highlight::QuantumClifford.PauliOperator; label=false)
+function DHC_plot_lattice(lattice::Vector{DHCSite}, highlight::QuantumClifford.PauliOperator; label=false)
     background = RGBf(236/256, 240/256, 241/256)
     latticeblack = RGBf(28/256, 40/256, 51/256)
     latticered = RGBf(231/256, 76/256, 60/256)
@@ -273,7 +276,7 @@ function DHC_plot_lattice(lattice, highlight::QuantumClifford.PauliOperator; lab
     return fig
 end
 
-function DHC_plot_lattice(lattice, highlights::Vector{QuantumClifford.PauliOperator}; label=false)
+function DHC_plot_lattice(lattice::Vector{DHCSite}, highlights::Vector{QuantumClifford.PauliOperator}; label=false)
     background = RGBf(236/256, 240/256, 241/256)
     latticeblack = RGBf(28/256, 40/256, 51/256)
     latticered = RGBf(231/256, 76/256, 60/256)
@@ -367,8 +370,3 @@ function voronoi_tesselation_plot(positions, values, r=0)
     #lines!(parameter_circles2(r)[5] .+1, parameter_circles2(r)[6] .+1, color=:black, linewidth=4)
     return fig
 end
-
-parameter_set = parameter_full(15)
-positions = parametric_to_cartesian.(parameter_set)
-values = [load("data/YaoKivelsonXYZ/full/L=12/param_$(i).jld2")["TMI"] for i in eachindex(parameter_set)]
-fig = voronoi_tesselation_plot(positions, values)

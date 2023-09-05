@@ -68,37 +68,37 @@ function _DHC_zneighbour(globalindex, L)
     end
 end
 
-# function DHC_subsystem(L, ls)
-#     # cut along y bonds
-#     nqubits = 6*L^2
-#     subsystem = []
-#     for i in ls
-#         A = (6*(i-1) + 1):6*L:nqubits
-#         B = (6*(i-1) + 2):6*L:nqubits
-#         C = (6*(i-1) + 3):6*L:nqubits
-#         D = (6*(i-1) + 4):6*L:nqubits
-#         E = (6*(i-1) + 5):6*L:nqubits
-#         F = (6*(i-1) + 6):6*L:nqubits
-#         push!(subsystem, A)
-#         push!(subsystem, B)
-#         push!(subsystem, C)
-#         push!(subsystem, D)
-#         push!(subsystem, E)
-#         push!(subsystem, F)
-#     end
-#     return sort(union(subsystem...))
-# end
-
 function DHC_subsystem(L, ls)
-    # cut along Z bonds
-    sites = []
-    for l in ls
-        for i in ((l-1)*6*L +1):(l*6*L)
-            push!(sites, i)
-        end
+    # cut along y bonds
+    nqubits = 6*L^2
+    subsystem = []
+    for i in ls
+        A = (6*(i-1) + 1):6*L:nqubits
+        B = (6*(i-1) + 2):6*L:nqubits
+        C = (6*(i-1) + 3):6*L:nqubits
+        D = (6*(i-1) + 4):6*L:nqubits
+        E = (6*(i-1) + 5):6*L:nqubits
+        F = (6*(i-1) + 6):6*L:nqubits
+        push!(subsystem, A)
+        push!(subsystem, B)
+        push!(subsystem, C)
+        push!(subsystem, D)
+        push!(subsystem, E)
+        push!(subsystem, F)
     end
-    return sites
+    return sort(union(subsystem...))
 end
+
+# function DHC_subsystem(L, ls)
+#     # cut along Z bonds
+#     sites = []
+#     for l in ls
+#         for i in ((l-1)*6*L +1):(l*6*L)
+#             push!(sites, i)
+#         end
+#     end
+#     return sites
+# end
 
 function _DHC_cartesian_position(i::Int64, L::Int64)
     if i > 6
@@ -319,8 +319,43 @@ function _DHC_ZZ_operators(L) :: Vector{PauliOperator}
     return operators
 end
 
-function DHC_initial_state(L)
-    stabs = [_DHC_ZZ_operators(L)..., _DHC_largeloop_operators(L)..., _DHC_smallloop_operators(L)..., _DHC_wilsonline_operators(L)...]
+function _DHC_XX_operators(L) :: Vector{PauliOperator}
+    N = 6*L^2
+    operators = []
+    for i in 1:N # 3:6:N
+        Xarr = falses(N)
+        Zarr = falses(N)
+        Xarr[i] = true
+        Xarr[_DHC_xneighbour(i,L)] = true
+        push!(operators, PauliOperator(0x00, Xarr, Zarr))
+    end
+    return unique(operators)
+end
+
+function _DHC_YY_operators(L) :: Vector{PauliOperator}
+    N = 6*L^2
+    operators = []
+    for i in 1:N # 3:6:N
+        Xarr = falses(N)
+        Zarr = falses(N)
+        Xarr[i] = true
+        Xarr[_DHC_yneighbour(i,L)] = true
+        Zarr[i] = true
+        Zarr[_DHC_yneighbour(i,L)] = true
+        push!(operators, PauliOperator(0x00, Xarr, Zarr))
+    end
+    return unique(operators)
+end
+
+function DHC_initial_state(L, basis=:Z) :: MixedDestabilizer
+    if basis == :Z
+        bilinears = _DHC_ZZ_operators(L)
+    elseif basis == :X
+        bilinears = _DHC_XX_operators(L)
+    elseif basis == :Y
+        bilinears = _DHC_YY_operators(L)
+    end
+    stabs = [bilinears..., _DHC_largeloop_operators(L)..., _DHC_smallloop_operators(L)..., _DHC_wilsonline_operators(L)...]
     state = MixedDestabilizer(Stabilizer(stabs))
     if QuantumClifford.trusted_rank(state) != 6*L^2
         @warn "Initial state is not pure."

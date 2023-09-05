@@ -1,7 +1,12 @@
+"""
+    trajectory(id, init, L, parameters, mode, checkpoints, verbose)
+
+TBW
+"""
 function trajectory(id, init, L, parameters, mode, checkpoints, verbose)
     # take given initial state, thermalise, measure and return observables
     # checkpoints: temporarily save state to file after each 10th timestep
-    # possible modes: ChainPP, ChainPQ, Kitaev, Kekule, Yao-Kivelson
+    # possible modes: ChainPP, ChainPQ, Kitaev, Kekule, Yao-KivelsonXYZ, Yao-KivelsonJJ
     if mode == :ChainPP
         return _chain_trajectory(id, init, L, parameters, mode, checkpoints, verbose)
     elseif mode == :ChainPQ
@@ -70,8 +75,8 @@ function _yaokivelson_XYZ_trajectory(id, init, L, parameters, mode, checkpoints,
         for layer in 1:3
             _DHC_XYZ_timestep!(state, px, py, pz)
         end
-        entropy[measurement, :] = DHC_EE(state, L)
-        TMI[measurement] = DHC_TMI(state, L)
+        Threads.@spawn entropy[measurement, :] = DHC_EE(copy(state), L)
+        Threads.@spawn TMI[measurement] = DHC_TMI(copy(state), L)
     end
 
     return sum(entropy, dims=1)./measurements, sum(TMI)./measurements

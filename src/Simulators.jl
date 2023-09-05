@@ -3,6 +3,59 @@ using Statistics
 using Dates
 using LinearAlgebra
 
+struct Setup
+    mode::Symbol
+    size::Int
+    name::String
+    params::Vector{Vector{Real}}
+    trajectories::UnitRange{Int64}
+    checkpoints::Bool
+    verbosity::Symbol
+end
+
+function simulate(setup::Setup)
+end
+
+function _id(setup::Setup, index::Int64, trajectory::Int64)
+    param = setup.params[index]
+    param_string = ""
+    for p in param
+        param_string *= "$(p)_"
+    end
+    return "$(setup.mode)_$(setup.name)_$(setup.size)_$(trajectory)"*param_string
+end
+
+function _update_checkpoint(state, id, time)
+    filename = "data/checkpoints/$(hash(id)).jld2" 
+    if isfile(filename)
+        if time < jldopen(filename, "r") do file
+            file["time"]
+        end
+            jldopen(filename, "a+") do file
+                file["state"] = state
+                file["time"] = time
+            end
+        end
+        # load
+        # return state
+    # else
+        # (@async) save checkpoint (state, id, time) -> overwrite
+        # return nothing
+end
+
+# function _filehandling(setup::Setup)
+#     if !(isempty("data/$(setup.mode)/$(setup.name)/L=$(setup.)")
+
+#     # if !ispath("data/$(setup.type)")
+#     #     mkpath("data/$(setup.type)")
+#     # end
+#     # if !ispath("data/$(setup.type)/$(setup.size)")
+#     #     mkpath("data/$(setup.type)/$(setup.size)")
+#     # end
+#     # if !ispath("data/$(setup.type)/$(setup.size)/$(setup.trajectories)")
+#     #     mkpath("data/$(setup.type)/$(setup.size)/$(setup.trajectories)")
+#     # end
+# end
 function simulate(L, mode, trajectories, parameter_set, index, name, checkpoints=false, verbose=false)
     # set BLAS threads to 1 to avoid oversubscription
     BLAS.set_num_threads(1)
