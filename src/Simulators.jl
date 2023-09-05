@@ -3,45 +3,7 @@ using Statistics
 using Dates
 using LinearAlgebra
 
-abstract type Trajectory end
-abstract type HoneycombTrajectory <: Trajectory end
-abstract type ChainTrajectory <: Trajectory end
-abstract type DecoratedHoneycombTrajectory <: Trajectory end
-struct KitaevTrajectory <: HoneycombTrajectory
-    size::Int
-    name::String
-    params::Vector{Real}
-    checkpoints::Bool
-    verbosity::Symbol
-    index::Int64
-end
 
-struct KekuleTrajectory <: HoneycombTrajectory
-    size::Int
-    name::String
-    params::Vector{Real}
-    checkpoints::Bool
-    verbosity::Symbol
-    index::Int64
-end
-
-struct YaoKivelsonXYZTrajectory <: DecoratedHoneycombTrajectory
-    size::Int
-    name::String
-    params::Vector{Real}
-    checkpoints::Bool
-    verbosity::Symbol
-    index::Int64
-end
-
-struct YaoKivelsonJJTrajectory <: DecoratedHoneycombTrajectory
-    size::Int
-    name::String
-    params::Vector{Real}
-    checkpoints::Bool
-    verbosity::Symbol
-    index::Int64
-end
 
 
 abstract type Simulation end

@@ -1,42 +1,65 @@
+abstract type Trajectory end
+abstract type HoneycombTrajectory <: Trajectory end
+abstract type ChainTrajectory <: Trajectory end
+abstract type DecoratedHoneycombTrajectory <: Trajectory end
+struct KitaevTrajectory <: HoneycombTrajectory
+    size::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    index::Int64
+end
+
+struct KekuleTrajectory <: HoneycombTrajectory
+    size::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    index::Int64
+end
+
+struct YaoKivelsonXYZTrajectory <: DecoratedHoneycombTrajectory
+    size::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    index::Int64
+end
+
+struct YaoKivelsonJJTrajectory <: DecoratedHoneycombTrajectory
+    size::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    index::Int64
+end
+
+
 """
     trajectory(id, init, L, parameters, mode, checkpoints, verbose)
 
 TBW
 """
-function trajectory(id, init, L, parameters, mode, checkpoints, verbose)
-    # take given initial state, thermalise, measure and return observables
-    # checkpoints: temporarily save state to file after each 10th timestep
-    # possible modes: ChainPP, ChainPQ, Kitaev, Kekule, Yao-KivelsonXYZ, Yao-KivelsonJJ
-    if mode == :ChainPP
-        return _chain_trajectory(id, init, L, parameters, mode, checkpoints, verbose)
-    elseif mode == :ChainPQ
-        return _chain_trajectory(id, init, L, parameters, mode, checkpoints, verbose)
-    elseif mode == :Kitaev
-        return _kitaev_trajectory(id, init, L, parameters, mode, checkpoints, verbose)
-    elseif mode == :Kekule
-        return _kitaev_trajectory(id, init, L, parameters, mode, checkpoints, verbose)
-    elseif mode == :YaoKivelsonJJ
-        return _yaokivelson_JJ_trajectory(id, init, L, parameters, mode, checkpoints, verbose)
-    elseif mode == :YaoKivelsonXYZ
-        return _yaokivelson_XYZ_trajectory(id, init, L, parameters, mode, checkpoints, verbose)
-    end
-end
 
-function _get_checkpoint(id)
-    try
-        load_dict = load("data/checkpoints/$(id).jld2")
-        return load_dict["state"]
-    catch
-        @warn "Checkpoint $(id) could not be loaded."
-        return nothing
-    end
-end
+# function _get_checkpoint(id)
+#     try
+#         load_dict = load("data/checkpoints/$(id).jld2")
+#         return load_dict["state"]
+#     catch
+#         @warn "Checkpoint $(id) could not be loaded."
+#         return nothing
+#     end
+# end
 
-function _set_checkpoint(id, state)
-    jldopen("data/checkpoints/$(id).jld2", "w") do file
-        file["state"] = state
-    end
-end
+# function _set_checkpoint(id, state)
+#     jldopen("data/checkpoints/$(id).jld2", "w") do file
+#         file["state"] = state
+#     end
+# end
 
 function _yaokivelson_XYZ_trajectory(id, init, L, parameters, mode, checkpoints, verbose)
     px = parameters[1]
