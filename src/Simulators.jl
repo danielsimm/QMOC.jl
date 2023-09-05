@@ -3,20 +3,56 @@ using Statistics
 using Dates
 using LinearAlgebra
 
-struct Setup
-    mode::Symbol
+abstract type System
     size::Int
     name::String
-    params::Vector{Vector{Real}}
-    trajectories::UnitRange{Int64}
+    params::Vector{Real}
     checkpoints::Bool
     verbosity::Symbol
+    trajectory::Int64
+end
+abstract type HoneycombSystem <: System end
+abstract type ChainSystem <: System end
+abstract type DecoratedHoneycombSystem <: System end
+struct KitaevTrajectory <: HoneycombSystem
+    
 end
 
-function simulate(setup::Setup)
+struct KekuleTrajectory <: HoneycombSystem
+    size::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    trajectory::Int64
 end
 
-function _id(setup::Setup, index::Int64, trajectory::Int64)
+struct YaoKivelsonXYZTrajectory <: DecoratedHoneycombSystem
+    size::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    trajectory::Int64
+end
+
+struct YaoKivelsonJJTrajectory <: DecoratedHoneycombSystem
+    size::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    trajectory::Int64
+end
+
+
+abstract type Simulation end
+
+function simulate(simulation::Simulation)
+
+end
+
+function _id(traj::System)
     param = setup.params[index]
     param_string = ""
     for p in param
