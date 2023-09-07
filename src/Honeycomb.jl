@@ -1,3 +1,30 @@
+abstract type HoneycombTrajectory <: Trajectory end
+struct KitaevTrajectory <: HoneycombTrajectory
+    size::Int
+    nqubits::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    index::Int64
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
+end
+
+struct KekuleTrajectory <: HoneycombTrajectory
+    size::Int
+    nqubits::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    index::Int64
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
+end
+
 ### Geometry ###
 
 struct HCSite

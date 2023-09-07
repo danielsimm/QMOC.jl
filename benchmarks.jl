@@ -1,5 +1,5 @@
 using LinearAlgebra
-using AppleAccelerate
+using Statistics
 using BenchmarkTools
 include("LatticeCircuits.jl")
 
@@ -89,7 +89,17 @@ function BLAS_benchmark(L)
     return times_evolution, times_TMI
 end
     
-
-
-
-BLAS_benchmark(4)
+function fast_projection_benchmark(L)
+    traj1 = PPChainTrajectory(L, L, "test", [1//3, 1//3, 1//3], false, :off, 1, 100, 1, 100)
+    traj2 = PPChainTrajectoryFast(L, L, "test", [1//3, 1//3, 1//3], false, :off, 1, 100, 1, 100)
+    init = initialise(traj1)
+    for i in 1:3*L
+        circuit!(init, traj1)
+    end
+    state1 = deepcopy(init)
+    state2 = deepcopy(init)
+    b1 = @benchmark circuit!($state1, $traj1)
+    b2 = @benchmark circuit!($state2, $traj2)
+    return b1, b2
+end
+b1, b2 = fast_projection_benchmark(1024)
