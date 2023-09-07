@@ -1,3 +1,30 @@
+abstract type DecoratedHoneycombTrajectory <: Trajectory end
+struct YaoKivelsonXYZTrajectory <: DecoratedHoneycombTrajectory
+    size::Int
+    nqubits::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    index::Int64
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
+end
+
+struct YaoKivelsonJJTrajectory <: DecoratedHoneycombTrajectory
+    size::Int
+    nqubits::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    index::Int64
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
+end
+
 ### Geometry ###
 
 struct DHCSite
@@ -361,6 +388,10 @@ function DHC_initial_state(L, basis=:Z) :: MixedDestabilizer
         @warn "Initial state is not pure."
     end
     return state
+end
+
+function initialise(trajectory::DecoratedHoneycombTrajectory)
+    return DHC_initial_state(trajectory.size)
 end
 
 function _DHC_randomXXmeasurement!(state::QuantumClifford.AbstractStabilizer)

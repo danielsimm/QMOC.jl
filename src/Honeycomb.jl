@@ -1,3 +1,30 @@
+abstract type HoneycombTrajectory <: Trajectory end
+struct KitaevTrajectory <: HoneycombTrajectory
+    size::Int
+    nqubits::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    index::Int64
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
+end
+
+struct KekuleTrajectory <: HoneycombTrajectory
+    size::Int
+    nqubits::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    index::Int64
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
+end
+
 ### Geometry ###
 
 struct HCSite
@@ -313,6 +340,10 @@ end
 function HC_initial_state(L::Int64)
     stabs = [_HC_ZZ_operators(L)..., _HC_WilsonPlaquette_operators(L)..., _HC_WilsonLoops(L)...]
     return MixedDestabilizer(Stabilizer(stabs))
+end
+
+function initialise(trajectory::HoneycombTrajectory)
+    return HC_initial_state(trajectory.size)
 end
 
 function _HC_randomXXmeasurement!(state::QuantumClifford.AbstractStabilizer)

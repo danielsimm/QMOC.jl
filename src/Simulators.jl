@@ -3,210 +3,89 @@ using Statistics
 using Dates
 using LinearAlgebra
 
-struct Setup
-    mode::Symbol
+struct Simulation
+    type::Symbol
     size::Int
+    nqubits::Int
     name::String
-    params::Vector{Vector{Real}}
-    trajectories::UnitRange{Int64}
     checkpoints::Bool
     verbosity::Symbol
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
+    num_trajectrories::Int64
+    parameter_set::Vector{Vector{Real}}
+    ensemble::Vector{Vector{Trajectory}}
 end
 
-function simulate(setup::Setup)
-end
-
-function _id(setup::Setup, index::Int64, trajectory::Int64)
-    param = setup.params[index]
-    param_string = ""
-    for p in param
-        param_string *= "$(p)_"
+function simulation(
+    type::Symbol,
+    size::Int64,
+    name::String,
+    num_trajectories::Int64,
+    parameter_set::Vector{Vector{Real}};
+    checkpoints::Bool=false,
+    verbosity::Symbol=:low,
+    nqubits::Int64 = _number_of_qubits(type, size),
+    thermalization_steps::Int64=3*size,
+    number_of_measurements::Int64=100,
+    measurement_steps::Int64=3
+    )
+    ensemble = Vector{Vector{Trajectory}}(undef, length(parameter_set))
+    for i in eachindex(ensemble)
+        ensemble[i] = Vector{Trajectory}(undef, num_trajectories)
+        for j in eachindex(ensemble[i])
+            ensemble[i][j] = trajectory(type, size, nqubits, name, parameter_set[i], checkpoints, verbosity, j, thermalization_steps, measurement_steps, number_of_measurements)
+        end
     end
-    return "$(setup.mode)_$(setup.name)_$(setup.size)_$(trajectory)"*param_string
+    return Simulation(type, size, nqubits, name, checkpoints, verbosity, thermalization_steps, measurement_steps, number_of_measurements, num_trajectories, parameter_set, ensemble)
 end
 
-# function _update_checkpoint(state, id, time)
-#     filename = "data/checkpoints/$(hash(id)).jld2" 
-#     if isfile(filename)
-#         if time < jldopen(filename, "r") do file
-#             file["time"]
-#         end
-#             jldopen(filename, "a+") do file
-#                 file["state"] = state
-#                 file["time"] = time
-#             end
-#         end
-#         # load
-#         # return state
-#     # else
-#         # (@async) save checkpoint (state, id, time) -> overwrite
-#         # return nothing
-# end
+function trajectory(
+    type, 
+    size,
+    nqubits, 
+    name, 
+    parameters, 
+    checkpoints, 
+    verbosity, 
+    index, 
+    thermalization_steps, 
+    measurement_steps, 
+    number_of_measurements)
+    if type == :ChainPP
+        return PPChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+    elseif type == :ChainPQ
+        return PQChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+    elseif type == :ChainPPFast
+        return PPChainTrajectoryFast(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+    elseif type == :Kekule
+        return KekuleTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+    elseif type == :Kitaev
+        return KitaevTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+    elseif type == :YaoKivelsonXYZ
+        return YaoKivelsonXYZTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+    elseif type == :YaoKivelsonJJ
+        return YaoKivelsonJJTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+    else
+        error("Type $(type) not implemented.")
+    end
+end
 
-# function _filehandling(setup::Setup)
-#     if !(isempty("data/$(setup.mode)/$(setup.name)/L=$(setup.)")
+function _number_of_qubits(type::Symbol, size::Int)
+    if type in [:ChainPP, :ChainPQ, :ChainPPFast]
+        return size
+    elseif type in [:Kekule, :Kitaev]
+        return 2*size^2
+    elseif type in [:YaoKivelsonXYZ, :YaoKivelsonJJ]
+        return 3*size^2
+    else
+        error("Type $(type) not implemented.")
+    end
+end
 
-#     # if !ispath("data/$(setup.type)")
-#     #     mkpath("data/$(setup.type)")
-#     # end
-#     # if !ispath("data/$(setup.type)/$(setup.size)")
-#     #     mkpath("data/$(setup.type)/$(setup.size)")
-#     # end
-#     # if !ispath("data/$(setup.type)/$(setup.size)/$(setup.trajectories)")
-#     #     mkpath("data/$(setup.type)/$(setup.size)/$(setup.trajectories)")
-#     # end
-# end
-function simulate(L, mode, trajectories, parameter_set, index, name, checkpoints=false, verbose=false)
+
+function simulate(simulation::Simulation)
     # set BLAS threads to 1 to avoid oversubscription
     BLAS.set_num_threads(1)
-    
-    parameters = parameter_set[index]
-    if !ispath("data/$(mode)/$(name)/L=$(L)")
-        mkpath("data/$(mode)/$(name)/L=$(L)")
-    end
-    if !ispath("data/checkpoints")
-        mkpath("data/checkpoints")
-    end
-    if isfile("data/$(mode)/$(name)/L=$(L)/param_$(index).jld2")
-        @info "Skipping $(mode) | $(name) | L=$(L) | Parameter Set $(index), already exists."
-        return
-    else
-        if mode == :ChainPP
-            simulate_chain(L, mode, trajectories, parameters, index, name, checkpoints, verbose)
-        elseif mode == :ChainPQ
-            simulate_chain(L, mode, trajectories, parameters, index, name, checkpoints, verbose)
-        elseif mode == :Kekule
-            simulate_honeycomb(L, mode, trajectories, parameters, index, name, checkpoints, verbose)
-        elseif mode == :Kitaev
-            simulate_honeycomb(L, mode, trajectories, parameters, index, name, checkpoints, verbose)
-        elseif mode == :YaoKivelsonJJ
-            simulate_decoratedhoneycomb(L, mode, trajectories, parameters, index, name, checkpoints, verbose)
-        elseif mode == :YaoKivelsonXYZ
-            simulate_decoratedhoneycomb(L, mode, trajectories, parameters, index, name, checkpoints, verbose)
-        else
-            error("Mode $(mode) not implemented.")
-        end
-    end
-end
-
-function simulate_decoratedhoneycomb(L, mode, trajectories, parameters, index, name, checkpoints, verbose)
-    if typeof(trajectories) == Int64
-        trajectories = collect(1:trajectories)
-        verbose ? (@info "Converting to trajectory range $(trajectories).") : nothing
-    end
-    
-    if isfile("data/$(mode)/init_L=$(L).jld2")
-        init = jldopen("data/$(mode)/init_L=$(L).jld2") do file
-            file["init"]
-        end
-    else
-        init = DHC_initial_state(L)
-        jldopen("data/$(mode)/init_L=$(L).jld2", "a+") do file
-            file["init"] = init
-        end
-        verbose ? (@info "Saved initial state to file for L=$(L) decorated honeycomb lattice.") : nothing
-    end
-
-    @info "Starting $(mode) | $(name) | L=$(L) | parameter set $(index)."
-    tick = now()
-
-    entropy = zeros(length(trajectories), L+1)
-    TMI = zeros(length(trajectories))
-    Threads.@threads for traj in trajectories
-        id = "$(mode)_$(name)_$(L)_$(index)_$(traj)"
-        entropy[traj, :], TMI[traj] = trajectory(id, copy(init), L, parameters, mode, checkpoints, verbose)
-        
-    end
-
-    jldopen("data/$(mode)/$(name)/L=$(L)/param_$(index).jld2", "a+") do file
-        file["entropy"] = mean(entropy, dims=1)
-        file["TMI"] = mean(TMI)
-        file["entropy_std"] = std(entropy, dims=1)
-        file["TMI_std"] = std(TMI)
-    end
-    tock = now()
-    @info "Finished $(mode) | $(name) | L=$(L) | parameter set $(index). Time elapsed: $(Dates.format(convert(DateTime, tock-tick), "HH:MM:SS"))."
-
-    # remove all checkpoints
-    if checkpoints
-        for traj in trajectories
-            rm("data/checkpoints/$(mode)_$(name)_$(L)_$(index)_$(traj).jld2")
-        end
-    end
-end
-
-function simulate_honeycomb(L, mode, trajectories, parameters, index, name, checkpoints, verbose)
-    if typeof(trajectories) == Int64
-        trajectories = collect(1:trajectories)
-        verbose ? (@info "Converting to trajectory range $(trajectories).") : nothing
-    end
-    
-    if isfile("data/$(mode)/init_L=$(L).jld2")
-        init = jldopen("data/$(mode)/init_L=$(L).jld2") do file
-            file["init"]
-        end
-    else
-        init = HC_initial_state(L)
-        jldopen("data/$(mode)/init_L=$(L).jld2", "a+") do file
-            file["init"] = init
-        end
-        verbose ? (@info "Saved initial state to file for L=$(L) honeycomb lattice.") : nothing
-    end
-
-    @info "Starting $(mode) | $(name) | L=$(L) | parameter set $(index)."
-    tick = now()
-
-    entropy = zeros(length(trajectories), L+1)
-    TMI = zeros(length(trajectories))
-    Threads.@threads for traj in trajectories
-        id = "$(mode)_$(name)_$(L)_$(index)_$(traj)"
-        entropy[traj, :], TMI[traj] = trajectory(id, copy(init), L, parameters, mode, checkpoints, verbose)
-        
-    end
-
-    jldopen("data/$(mode)/$(name)/L=$(L)/param_$(index).jld2", "a+") do file
-        file["entropy"] = mean(entropy, dims=1)
-        file["TMI"] = mean(TMI)
-        file["entropy_std"] = std(entropy, dims=1)
-        file["TMI_std"] = std(TMI)
-    end
-    tock = now()
-    @info "Finished $(mode) | $(name) | L=$(L) | parameter set $(index). Time elapsed: $(Dates.format(convert(DateTime, tock-tick), "HH:MM:SS"))."
-
-    # remove all checkpoints
-    if checkpoints
-        for traj in trajectories
-            rm("data/checkpoints/$(mode)_$(name)_$(L)_$(index)_$(traj).jld2")
-        end
-    end
-end
-
-function simulate_chain(L, mode, trajectories, parameters, index, name, checkpoints, verbose)
-    init = one(MixedDestabilizer, L, L) 
-
-    if typeof(trajectories) == Int64
-        trajectories = 1:trajectories
-        verbose ? (@info "Converting to trajectory range $(trajectories).") : nothing
-    end
-    
-
-    @info "Starting $(mode) | $(name) | L=$(L) | parameter set $(index)."
-    tick = now()
-
-    entropy = zeros(length(trajectories), 33)
-    TMI = zeros(length(trajectories))
-    Threads.@threads for traj in trajectories
-        id = "$(mode)_$(name)_$(L)_$(index)_$(trajectory)"
-        entropy[traj, :], TMI[traj] = trajectory(id, copy(init), L, parameters, mode, checkpoints, verbose)
-        
-    end
-
-    jldopen("data/$(mode)/$(name)/L=$(L)/param_$(index).jld2", "a+") do file
-        file["entropy"] = mean(entropy, dims=1)
-        file["TMI"] = mean(TMI)
-        file["entropy_std"] = std(entropy, dims=1)
-        file["TMI_std"] = std(TMI)
-    end
-    tock = now()
-    @info "Finished $(mode) | $(name) | L=$(L) | parameter set $(index). Time elapsed: $(Dates.format(convert(DateTime, tock-tick), "HH:MM:SS"))."
 end
