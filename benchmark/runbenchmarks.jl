@@ -1,7 +1,9 @@
 using LinearAlgebra
 using Statistics
 using BenchmarkTools
-include("LatticeCircuits.jl")
+
+using LatticeCircuits
+# include("LatticeCircuits.jl")
 
 # mkpath("data")
 # touch("data/benchmarks.jld2")
