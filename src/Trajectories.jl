@@ -83,10 +83,12 @@ function observe!(state::QuantumClifford.AbstractStabilizer, trajectory::Traject
         end
         Threads.@spawn measure(copy(state), trajectory, copy(meas_id))
     end
-    return measurements
 end
 
 function measure(state, trajectory::Trajectory, meas_id)
+    if !isdir("data/measurements")
+        mkdir("data/measurements")
+    end
     meas = Measurement(meas_id, entropy(state, trajectory), tmi(state, trajectory), trajectory.params)
     jldopen("data/measurements/$(hash(trajectory)).jld2", "a+") do file
         file["$(meas_id)"] = meas

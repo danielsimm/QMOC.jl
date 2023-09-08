@@ -83,7 +83,14 @@ end
 function simulate(simulation::Simulation)
     # set BLAS threads to 1 to avoid oversubscription
     BLAS.set_num_threads(1)
-
+    trajectories = []
+    for i in eachindex(simulation.ensemble)
+        for j in eachindex(simulation.ensemble[i])
+            push!(trajectories, simulation.ensemble[i][j])
+        end
+    end
+    
+    pmap(run, trajectories)
 end
 
 export Simulation, simulation, simulate
