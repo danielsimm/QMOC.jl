@@ -1,8 +1,3 @@
-using QuantumClifford
-using Statistics
-using Dates
-using LinearAlgebra
-
 struct Simulation
     type::Symbol
     size::Int
@@ -23,7 +18,7 @@ function simulation(
     size::Int64,
     name::String,
     num_trajectories::Int64,
-    parameter_set::Vector{Vector{Real}};
+    parameter_set;
     checkpoints::Bool=false,
     verbosity::Symbol=:low,
     nqubits::Int64 = _number_of_qubits(type, size),
@@ -88,4 +83,7 @@ end
 function simulate(simulation::Simulation)
     # set BLAS threads to 1 to avoid oversubscription
     BLAS.set_num_threads(1)
+
 end
+
+export Simulation, simulation, simulate

@@ -133,7 +133,7 @@ end
 
 ### Observables
 
-function EE(state::QuantumClifford.AbstractStabilizer, trajectory::ChainTrajectory; algo=Val(:rref))
+function entropy(state::QuantumClifford.MixedDestabilizer, trajectory::ChainTrajectory; algo=Val(:rref))
     N = trajectory.nqubits
     EE = zeros(33)
     subsystems = Int.(collect(range(0, N, 33)))
@@ -143,7 +143,7 @@ function EE(state::QuantumClifford.AbstractStabilizer, trajectory::ChainTrajecto
     return EE
 end
 
-function TMI(state::QuantumClifford.AbstractStabilizer, trajectory::ChainTrajectory; algo=Val(:rref)) # no geometry
+function tmi(state::QuantumClifford.MixedDestabilizer, trajectory::ChainTrajectory; algo=Val(:rref)) # no geometry
     N = trajectory.nqubits
     A = 1:Int(N/4)
     B = Int(N/4)+1:Int(N/2)

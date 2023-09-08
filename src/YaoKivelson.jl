@@ -3,7 +3,7 @@ struct YaoKivelsonXYZTrajectory <: DecoratedHoneycombTrajectory
     size::Int
     nqubits::Int
     name::String
-    params::Vector{Real}
+    params::Vector{Any}
     checkpoints::Bool
     verbosity::Symbol
     index::Int64
@@ -16,7 +16,7 @@ struct YaoKivelsonJJTrajectory <: DecoratedHoneycombTrajectory
     size::Int
     nqubits::Int
     name::String
-    params::Vector{Real}
+    params::Vector{Any}
     checkpoints::Bool
     verbosity::Symbol
     index::Int64
@@ -25,147 +25,7 @@ struct YaoKivelsonJJTrajectory <: DecoratedHoneycombTrajectory
     number_of_measurements::Int64
 end
 
-### Geometry ###
-
-struct DHCSite
-    lindex::Int
-    xneighbour::Int
-    yneighbour::Int
-    zneighbour::Int
-    cartesianx::Float64
-    cartesiany::Float64
-end
-
-function _DHC_xneighbour(globalindex, L)
-    localindex = mod1(globalindex, 6)
-    if localindex == 1
-        return globalindex + 2
-    elseif localindex == 2
-        return globalindex + 2
-    elseif localindex == 3
-        return globalindex - 2
-    elseif localindex == 4
-        return globalindex - 2
-    elseif localindex == 5
-        return globalindex + 1
-    elseif localindex == 6
-        return globalindex - 1
-    end
-end
-
-function _DHC_yneighbour(globalindex, L)
-    localindex = mod1(globalindex, 6)
-    if localindex == 1
-        if globalindex-2 < div(globalindex, 6*L)*6*L
-            return globalindex - 2 + 6*L
-        else
-            return globalindex - 2
-        end
-    elseif localindex == 2
-        return globalindex + 1
-    elseif localindex == 3
-        return globalindex - 1
-    elseif localindex == 4
-        return globalindex + 2
-    elseif localindex == 5
-        if globalindex+2 > (div(globalindex, 6*L)+1)*6*L
-            return globalindex + 2 - 6*L
-        else
-            return globalindex + 2
-        end
-    elseif localindex == 6
-        return globalindex - 2
-    end
-end
-
-function _DHC_zneighbour(globalindex, L)
-    localindex = mod1(globalindex, 6)
-    if localindex == 1
-        return globalindex + 1
-    elseif localindex == 2
-        return globalindex - 1
-    elseif localindex == 3
-        return mod1(globalindex + 3 + 6*L, 6*L^2)
-    elseif localindex == 4
-        return globalindex + 1
-    elseif localindex == 5
-        return globalindex - 1
-    elseif localindex == 6
-        return mod1(globalindex - 3 - 6*L, 6*L^2)
-    end
-end
-
-function DHC_subsystem(L, ls)
-    # cut along y bonds
-    nqubits = 6*L^2
-    subsystem = []
-    for i in ls
-        A = (6*(i-1) + 1):6*L:nqubits
-        B = (6*(i-1) + 2):6*L:nqubits
-        C = (6*(i-1) + 3):6*L:nqubits
-        D = (6*(i-1) + 4):6*L:nqubits
-        E = (6*(i-1) + 5):6*L:nqubits
-        F = (6*(i-1) + 6):6*L:nqubits
-        push!(subsystem, A)
-        push!(subsystem, B)
-        push!(subsystem, C)
-        push!(subsystem, D)
-        push!(subsystem, E)
-        push!(subsystem, F)
-    end
-    return sort(union(subsystem...))
-end
-
-# function DHC_subsystem(L, ls)
-#     # cut along Z bonds
-#     sites = []
-#     for l in ls
-#         for i in ((l-1)*6*L +1):(l*6*L)
-#             push!(sites, i)
-#         end
-#     end
-#     return sites
-# end
-
-function _DHC_cartesian_position(i::Int64, L::Int64)
-    if i > 6
-        cell = div(i-1, 6)+1
-        xshift = (mod1(cell, L)-1) * [3, 0]
-        row = div(i-1, 6*L)
-        rowshift = row .* [-1.5, 1.5*sqrt(3)+1]
-        return _DHC_cartesian_position(mod1(i, 6), L) + xshift + rowshift
-    else
-        if i == 1
-            return [0.0, 0.0]
-        elseif i == 2
-            return [1.0, 0.0]
-        elseif i == 3
-            return [0.5, sqrt(3)/2]
-        elseif i == 4
-            return [1.5, -sqrt(3)/2]
-        elseif i == 5
-            return [2.5, -sqrt(3)/2]
-        elseif i == 6
-            return [2.0, -sqrt(3)]
-        end
-    end
-end
-
-function DHClattice(L) :: Vector{DHCSite}
-    lattice = Vector{DHCSite}(undef, 6*L*L)
-    for i in 1:6*L*L
-        cartesian = _DHC_cartesian_position(i, L)
-        lattice[i] = DHCSite(
-            i,
-            _DHC_xneighbour(i, L),
-            _DHC_yneighbour(i, L),
-            _DHC_zneighbour(i, L),
-            -cartesian[1],
-            cartesian[2])
-    end
-    return lattice
-end
-
+export YaoKivelsonXYZTrajectory, YaoKivelsonJJTrajectory, DecoratedHoneycombTrajectory
 
 ### Operators ###
 
@@ -298,15 +158,6 @@ function _DHC_wilsonline_operators(L) :: Vector{PauliOperator}
     operators = Vector{PauliOperator}(undef, 2)
     Xarr = falses(N)
     Zarr = falses(N)
-    # types = _generate_pattern_2(length(loop1))
-    # for i in eachindex(loop1)
-    #     site = loop1[i]
-    #     if types[i] == :X
-    #         Xarr[site] = true
-    #     elseif types[i] == :Z
-    #         Zarr[site] = true
-    #     end
-    # end
     for i in eachindex(loop1)
         site = loop1[i]
         Xarr[site] = true
@@ -315,16 +166,6 @@ function _DHC_wilsonline_operators(L) :: Vector{PauliOperator}
     operators[1] = PauliOperator(0x00, Xarr, Zarr)
     Xarr = falses(N)
     Zarr = falses(N)
-    # types = _generate_pattern_1(length(loop2))
-    # for i in eachindex(loop2)
-    #     site = loop2[i]
-    #     if types[i] == :X
-    #         Xarr[site] = true
-    #     elseif types[i] == :Y
-    #         Xarr[site] = true
-    #         Zarr[site] = true
-    #     end
-    # end
     for i in eachindex(loop2)
         site = loop2[i]
         Zarr[site] = true
@@ -374,7 +215,8 @@ function _DHC_YY_operators(L) :: Vector{PauliOperator}
     return unique(operators)
 end
 
-function DHC_initial_state(L, basis=:Z) :: MixedDestabilizer
+function initialise(trajectory::DecoratedHoneycombTrajectory; basis=:Z) :: MixedDestabilizer
+    L = trajectory.size
     if basis == :Z
         bilinears = _DHC_ZZ_operators(L)
     elseif basis == :X
@@ -384,17 +226,13 @@ function DHC_initial_state(L, basis=:Z) :: MixedDestabilizer
     end
     stabs = [bilinears..., _DHC_largeloop_operators(L)..., _DHC_smallloop_operators(L)..., _DHC_wilsonline_operators(L)...]
     state = MixedDestabilizer(Stabilizer(stabs))
-    if QuantumClifford.trusted_rank(state) != 6*L^2
+    if QuantumClifford.trusted_rank(state) != trajectory.nqubits
         @warn "Initial state is not pure."
     end
     return state
 end
 
-function initialise(trajectory::DecoratedHoneycombTrajectory)
-    return DHC_initial_state(trajectory.size)
-end
-
-function _DHC_randomXXmeasurement!(state::QuantumClifford.AbstractStabilizer)
+function _DHC_randomXXmeasurement!(state::QuantumClifford.MixedDestabilizer)
     N = nqubits(state)
     L = Int(sqrt(N/6))
     Xarr = falses(N)
@@ -406,7 +244,7 @@ function _DHC_randomXXmeasurement!(state::QuantumClifford.AbstractStabilizer)
     return nothing
 end
 
-function _DHC_randomYYmeasurement!(state::QuantumClifford.AbstractStabilizer)
+function _DHC_randomYYmeasurement!(state::QuantumClifford.MixedDestabilizer)
     N = nqubits(state)
     L = Int(sqrt(N/6))
     Xarr = falses(N)
@@ -420,7 +258,7 @@ function _DHC_randomYYmeasurement!(state::QuantumClifford.AbstractStabilizer)
     return nothing
 end
 
-function _DHC_randomZZmeasurement!(state::QuantumClifford.AbstractStabilizer)
+function _DHC_randomZZmeasurement!(state::QuantumClifford.MixedDestabilizer)
     N = nqubits(state)
     L = Int(sqrt(N/6))
     Xarr = falses(N)
@@ -432,7 +270,7 @@ function _DHC_randomZZmeasurement!(state::QuantumClifford.AbstractStabilizer)
     return nothing
 end
 
-function _DHC_randomsmallloopmeasurement!(state::QuantumClifford.AbstractStabilizer)
+function _DHC_randomsmallloopmeasurement!(state::QuantumClifford.MixedDestabilizer)
     N = nqubits(state)
     L = Int(sqrt(N/6))
     loop = rand(_DHC_smallloop_sites(L))
@@ -455,7 +293,7 @@ function _DHC_randomsmallloopmeasurement!(state::QuantumClifford.AbstractStabili
     project!(state, PauliOperator(0x00, Xarr, Zarr), keep_result=false, phases=false)
 end
 
-function _DHC_randomlargeloopmeasurement!(state::QuantumClifford.AbstractStabilizer)
+function _DHC_randomlargeloopmeasurement!(state::QuantumClifford.MixedDestabilizer)
     N = nqubits(state)
     L = Int(sqrt(N/6))
     loop = rand(_DHC_largeloop_sites(L))
@@ -491,8 +329,11 @@ end
 
 ### Dynamics ###
 
-function _DHC_XYZ_timestep!(state::QuantumClifford.AbstractStabilizer, px, py, pz)
-    for subtime in 1:nqubits(state)
+function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivelsonXYZTrajectory)
+    px = trajectory.params[1]
+    py = trajectory.params[2]
+    pz = trajectory.params[3]
+    for subtime in 1:trajectory.nqubits
         p = rand()
         if p < px
             _DHC_randomXXmeasurement!(state)
@@ -505,8 +346,9 @@ function _DHC_XYZ_timestep!(state::QuantumClifford.AbstractStabilizer, px, py, p
     return nothing
 end
 
-function _DHC_JJ_timestep!(state::QuantumClifford.AbstractStabilizer, pJ)
-    for subtime in 1:nqubits(state)
+function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivelsonJJTrajectory)
+    pJ = trajectory.params[1]
+    for subtime in 1:trajectory.nqubits
         p = rand()
         if p < pJ
             _DHC_randomsmallloopmeasurement!(state)
@@ -520,7 +362,9 @@ end
 
 ### Observables ###
 
-function DHC_EE(state, L; algo=Val(:rref))
+function entropy(state::QuantumClifford.MixedDestabilizer, trajectory::DecoratedHoneycombTrajectory)
+    algo=Val(:rref)
+    L = trajectory.size
     EE = zeros(L+1)
     for i in 1:L
         EE[i+1] = entanglement_entropy(state, DHC_subsystem(L, 1:i), algo)
@@ -528,9 +372,11 @@ function DHC_EE(state, L; algo=Val(:rref))
     return EE
 end
 
-function DHC_TMI(state, L; algo=Val(:rref))
+function tmi(state::QuantumClifford.MixedDestabilizer, trajectory::DecoratedHoneycombTrajectory)
+    algo=Val(:rref)
+    L = trajectory.size
     if mod(L, 4) != 0
-        @info "L must be a multiple of 4, but is $(numberOfQubits). Tripartite mutual information is ill-defined."
+        @info "L must be a multiple of 4, but is $(L). Tripartite mutual information is ill-defined."
     end
     A = DHC_subsystem(L, 1:Int(L/4))
     B = DHC_subsystem(L, Int(L/4)+1:Int(L/2))
@@ -545,60 +391,28 @@ function DHC_TMI(state, L; algo=Val(:rref))
     return SA + SB + SC - SAB - SBC - SAC + SABC
 end
 
-function DHC_observables(state; algo = Val(:rref)) # returns EE, TMI, multithreaded
-    N = nqubits(state)
-    L = Int(sqrt(N/6))
-    if mod(L, 4) != 0
-        @info "L must be a multiple of 4, but is $(N). Tripartite mutual information is ill-defined."
-    end
-    results = zeros(L+1+7)
-    subsystems = [DHC_subsystem(L, 1:i) for i in 1:L]
-    A = DHC_subsystem(L, 1:Int(L/4))
-    B = DHC_subsystem(L, Int(L/4)+1:Int(L/2))
-    C = DHC_subsystem(L, Int(L/2)+1:Int(3L/4))
-    push!(subsystems, A)
-    push!(subsystems, B)
-    push!(subsystems, C)
-    push!(subsystems, union(A,B))
-    push!(subsystems, union(B,C))
-    push!(subsystems, union(A,C))
-    push!(subsystems, union(A, B, C))
-    Threads.@threads for i in eachindex(subsystems)
-        results[i+1] = entanglement_entropy(copy(state), subsystems[i], algo)
-    end
-    EE = results[1:L+1]
-    TMI = results[L+2] + results[L+3] + results[L+4] - results[L+5] - results[L+6] - results[L+7] + results[L+8]
-    return EE, TMI
-end
-
-
-### Benchmark
-function DHC_benchmark_evolution(state)
-    for i in 1:3
-        _DHC_XYZ_timestep!(state, 0.1, 0.1, 0.1)
-    end
-    return nothing
-end
-
-function DHC_benchmark_observables(state)
-    EE, TMI = DHC_observables(state)
-    return nothing
-end
-
-function DHC_benchmark_async(state)
-    for _ in 1:10
-        for i in 1:3
-            _DHC_XYZ_timestep!(state, 0.1, 0.1, 0.1)
-        end
-        @async DHC_observables(state)
-    end
-end
-
-function DHC_benchmark_serial(state)
-    for _ in 1:10
-        for i in 1:3
-            _DHC_XYZ_timestep!(state, 0.1, 0.1, 0.1)
-        end
-        DHC_observables(state)
-    end
-end
+# function DHC_observables(state; algo = Val(:rref)) # returns EE, TMI, multithreaded
+#     N = nqubits(state)
+#     L = Int(sqrt(N/6))
+#     if mod(L, 4) != 0
+#         @info "L must be a multiple of 4, but is $(N). Tripartite mutual information is ill-defined."
+#     end
+#     results = zeros(L+1+7)
+#     subsystems = [DHC_subsystem(L, 1:i) for i in 1:L]
+#     A = DHC_subsystem(L, 1:Int(L/4))
+#     B = DHC_subsystem(L, Int(L/4)+1:Int(L/2))
+#     C = DHC_subsystem(L, Int(L/2)+1:Int(3L/4))
+#     push!(subsystems, A)
+#     push!(subsystems, B)
+#     push!(subsystems, C)
+#     push!(subsystems, union(A,B))
+#     push!(subsystems, union(B,C))
+#     push!(subsystems, union(A,C))
+#     push!(subsystems, union(A, B, C))
+#     Threads.@threads for i in eachindex(subsystems)
+#         results[i+1] = entanglement_entropy(copy(state), subsystems[i], algo)
+#     end
+#     EE = results[1:L+1]
+#     TMI = results[L+2] + results[L+3] + results[L+4] - results[L+5] - results[L+6] - results[L+7] + results[L+8]
+#     return EE, TMI
+# end
