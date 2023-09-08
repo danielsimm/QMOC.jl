@@ -93,4 +93,3 @@ function simulate(simulation::Simulation)
     pmap(run, trajectories)
 end
 
-export Simulation, simulation, simulate

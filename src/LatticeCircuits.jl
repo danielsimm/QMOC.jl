@@ -16,4 +16,7 @@ include("FastProjections.jl")
 include("Parameters.jl")
 include("Simulators.jl")
 
+# from Simulators.jl
+export Simulation, simulation, simulate
+
 end
