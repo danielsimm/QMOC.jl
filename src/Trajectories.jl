@@ -102,4 +102,3 @@ function run(trajectory::Trajectory)
     observe!(state, trajectory, time)
 end
 
-export run, Trajectory, Measurement

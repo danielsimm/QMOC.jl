@@ -19,4 +19,7 @@ include("Simulators.jl")
 # from Simulators.jl
 export Simulation, simulation, simulate
 
+# from Trajectories.jl
+export run, Trajectory, Measurement
+
 end
