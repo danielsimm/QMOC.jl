@@ -42,10 +42,11 @@ function printMetadata()
         @warn "No metadata file found at path 'data/metadata.jld2'."
         return
     end
-
+    numberOfSimulations = 0
     data = String[]
     jldopen("data/metadata.jld2", "r") do file
         for simulationName in keys(file)
+            numberOfSimulations += 1
             simulation = file[simulationName]
             push!(data,"$(simulation.name)")
             push!(data,"$(simulation.type)")
@@ -54,6 +55,7 @@ function printMetadata()
             push!(data,"$(simulation.number_of_measurements)")
         end
     end
+    reshape(data, 5, numberOfSimulations)
     pretty_table(data, ["name", "type", "L", "# trajectories", "# measurements"])
 end
 
