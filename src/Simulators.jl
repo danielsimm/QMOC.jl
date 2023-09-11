@@ -81,6 +81,7 @@ end
 
 
 function simulate(simulation::Simulation)
+    
     # set BLAS threads to 1 to avoid oversubscription
     BLAS.set_num_threads(1)
     trajectories = []
