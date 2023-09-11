@@ -18,13 +18,12 @@ function hash(trajectory::Trajectory)
 end
 
 function _write_checkpoint(state, time, filename, trajectory::Trajectory)
-    trajectory.verbosity == :debug ? (@info "Running _write_checkpoint subroutine.") : nothing
     jldopen(filename, "w") do file
-        println("Writing checkpoint to file $(filename).")
+        trajectory.verbosity == :debug ? (@info "Writing checkpoint to file $(filename).") : nothing
         file["state"] = state
         file["time"] = time
     end
-    trajectory.verbosity == :debug ? (@info "Saved checkpoint.") : nothing
+    trajectory.verbosity == :debug ? (@info "Closed file $(filename).") : nothing
 end
 
 function _read_checkpoint(filename, trajectory::Trajectory)
@@ -66,11 +65,6 @@ function checkpoint(state, trajectory::Trajectory, time, existing_measurements)
         end
 
     else
-
-        if !isdir("data/checkpoints")
-            mkdir("data/checkpoints")
-        end
-        trajectory.verbosity == :debug ? (@info "Now (over)writing checkpoint at time $(time).") : nothing
         _write_checkpoint(copy(state), copy(time), filename, trajectory)
         trajectory.verbosity == :debug ? (@info "--- Checkpoint info --- \n Time: $(time) \n Thermalised: $(time>trajectory.thermalization_steps) \n Existing measurements: $(existing_measurements) of $(trajectory.number_of_measurements)") : nothing
     end
@@ -94,8 +88,8 @@ function thermalise(state, trajectory::Trajectory, time, existing_measurements)
 end
 
 function observe(state::QuantumClifford.AbstractStabilizer, trajectory::Trajectory, time, existing_measurements)
-    for meas_id in 1:trajectory.number_of_measurements
-        if trajectory.checkpoints && time % 10 < trajectory.measurement_steps
+    for meas_id in existing_measurements+1:trajectory.number_of_measurements
+        if trajectory.checkpoints && meas_id % 10 == 0
             trajectory.verbosity == :debug ? (@info "Calling checkpoint subroutine at time $(time).") : nothing
             state, time, existing_measurements = checkpoint(state, trajectory, time, existing_measurements)
         end
@@ -112,10 +106,11 @@ function observe(state::QuantumClifford.AbstractStabilizer, trajectory::Trajecto
 end
 
 function measure(state, trajectory::Trajectory, meas_id)
-    trajectory.verbosity == :debug ? (@info "Measuring state (async)...") : nothing
+    filename = "data/measurements/$(hash(trajectory)).jld2" 
+    trajectory.verbosity == :debug ? (@info "Measurement $(meas_id) subroutine") : nothing
     meas = Measurement(meas_id, entropy(state, trajectory), tmi(state, trajectory), trajectory.params)
-    trajectory.verbosity == :debug ? (@info "Writing measurement $(meas_id) to file...") : nothing
-    jldopen("data/measurements/$(hash(trajectory)).jld2", "a+") do file
+    jldopen(filename, "a+") do file
+        println("Writing measurement $(meas_id) to file $(filename).")
         file["$(meas_id)"] = meas
     end
     trajectory.verbosity == :debug ? (@info "Finished measurement $(meas_id) of $(trajectory.number_of_measurements).") : nothing
@@ -128,10 +123,13 @@ function run(trajectory::Trajectory)
     if !isdir("data/measurements")
         mkdir("data/measurements")
     end
-    tick = now()
-    time = 0
+    if !isdir("data/checkpoints")
+        mkdir("data/checkpoints")
+    end
 
     trajectory.verbosity == :debug ? (@info "Starting trajectory $(trajectory.index) of $(trajectory.name).") : nothing
+    tick = now()
+    time = 0
     state = initialise(trajectory)
     trajectory.verbosity == :debug ? (@info "Initialised state.") : nothing
 
