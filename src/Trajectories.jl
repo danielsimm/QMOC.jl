@@ -14,7 +14,7 @@ end
     Returns a hash of the trajectory properties.
 """
 function hash(trajectory::Trajectory)
-    return hash("$(trajectory.name)_$(trajectory.size)_$(trajectory.params)_$(trajectory.index)_$(trajectory.thermalization_steps)_$(trajectory.measurement_steps)_$(trajectory.number_of_measurements)")
+    return hash("$(typeof(trajectory))_$(trajectory.size)_$(trajectory.params)_$(trajectory.index)_$(trajectory.thermalization_steps)_$(trajectory.measurement_steps)_$(trajectory.number_of_measurements)")
 end
 
 function _write_checkpoint(state, time, filename, trajectory::Trajectory)
