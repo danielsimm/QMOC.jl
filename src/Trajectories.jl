@@ -40,7 +40,7 @@ end
 
 function checkpoint(state, trajectory::Trajectory, time, existing_measurements)
     filename = "data/checkpoints/$(hash(trajectory)).jld2" 
-
+    filename2 = "data/measurements/$(hash(trajectory)).jld2" 
     if time == 0 # begining of trajectory, check for previous data
         trajectory.verbosity == :debug ? (@info "Beginning of trajectory, checking for previous data...") : nothing
         if isfile(filename)
@@ -50,7 +50,7 @@ function checkpoint(state, trajectory::Trajectory, time, existing_measurements)
             
             for i in 1:trajectory.number_of_measurements
                 try 
-                    jldopen(filename, "r") do file
+                    jldopen(filename2, "r") do file
                         file["$(i)"]
                     end
                     existing_measurements += 1
@@ -99,6 +99,7 @@ function observe(state::QuantumClifford.AbstractStabilizer, trajectory::Trajecto
         end
         trajectory.verbosity == :debug ? (@info "Spawning (async) measure subroutine at time $(time).") : nothing
         Threads.@spawn measure(copy(state), trajectory, copy(meas_id))
+        yield()
         existing_measurements += 1
         trajectory.verbosity == :debug ? (@info "Continue observe routine.") : nothing
     end
@@ -106,6 +107,7 @@ function observe(state::QuantumClifford.AbstractStabilizer, trajectory::Trajecto
 end
 
 function measure(state, trajectory::Trajectory, meas_id)
+    println("Thread ID $(Threads.threadid())")
     filename = "data/measurements/$(hash(trajectory)).jld2" 
     trajectory.verbosity == :debug ? (@info "Measurement $(meas_id) subroutine") : nothing
     meas = Measurement(meas_id, entropy(state, trajectory), tmi(state, trajectory), trajectory.params)
