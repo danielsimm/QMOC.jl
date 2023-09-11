@@ -19,7 +19,7 @@ traj = LatticeCircuits.trajectory(
     :debug, 
     1, 
     3*36, 
-    50, 
+    3, 
     10)
 
 run(traj)
