@@ -21,11 +21,11 @@ function simulation(
     parameter_set;
     checkpoints::Bool=false,
     verbosity::Symbol=:low,
-    nqubits::Int64 = _number_of_qubits(type, size),
-    thermalization_steps::Int64=3*size,
+    nqubits::Int64=_number_of_qubits(type, size),
+    thermalization_steps::Int64=3 * size,
     number_of_measurements::Int64=100,
     measurement_steps::Int64=3
-    )
+)
     ensemble = Vector{Vector{Trajectory}}(undef, length(parameter_set))
     for i in eachindex(ensemble)
         ensemble[i] = Vector{Trajectory}(undef, num_trajectories)
@@ -37,16 +37,16 @@ function simulation(
 end
 
 function trajectory(
-    type, 
+    type,
     size,
-    nqubits, 
-    name, 
-    parameters, 
-    checkpoints, 
-    verbosity, 
-    index, 
-    thermalization_steps, 
-    measurement_steps, 
+    nqubits,
+    name,
+    parameters,
+    checkpoints,
+    verbosity,
+    index,
+    thermalization_steps,
+    measurement_steps,
     number_of_measurements)
     if type == :ChainPP
         return PPChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
@@ -71,9 +71,9 @@ function _number_of_qubits(type::Symbol, size::Int)
     if type in [:ChainPP, :ChainPQ, :ChainPPFast]
         return size
     elseif type in [:Kekule, :Kitaev]
-        return 2*size^2
+        return 2 * size^2
     elseif type in [:YaoKivelsonXYZ, :YaoKivelsonJJ]
-        return 3*size^2
+        return 3 * size^2
     else
         error("Type $(type) not implemented.")
     end
@@ -81,7 +81,7 @@ end
 
 
 function simulate(simulation::Simulation)
-    
+
     # set BLAS threads to 1 to avoid oversubscription
     BLAS.set_num_threads(1)
     trajectories = []
@@ -90,7 +90,11 @@ function simulate(simulation::Simulation)
             push!(trajectories, simulation.ensemble[i][j])
         end
     end
-    
+
     pmap(run, trajectories)
+
+    # commit metadata to file
+    commitMetadata(simulation)
+
 end
 

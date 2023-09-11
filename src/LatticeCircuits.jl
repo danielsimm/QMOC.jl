@@ -14,12 +14,19 @@ include("YaoKivelson.jl")
 include("Chain.jl")
 include("FastProjections.jl")
 include("Parameters.jl")
+include("metadataHandling.jl")
 include("Simulators.jl")
+
+
+checkMetadataIntegrity()
 
 # from Simulators.jl
 export Simulation, simulation, simulate
 
 # from Trajectories.jl
 export run, Trajectory, Measurement
+
+# from metadataHandling.jl
+export printMetadata
 
 end
