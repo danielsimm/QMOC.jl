@@ -17,55 +17,76 @@ function hash(trajectory::Trajectory)
     return hash("$(trajectory.name)_$(trajectory.size)_$(trajectory.params)_$(trajectory.index)_$(trajectory.thermalization_steps)_$(trajectory.measurement_steps)_$(trajectory.number_of_measurements)")
 end
 
+function _write_checkpoint(state, time, filename, trajectory::Trajectory)
+    trajectory.verbosity == :debug ? (@info "Spawned _write_checkpoint subroutine.") : nothing
+    jldopen(filename, "w") do file
+        file["state"] = state
+        file["time"] = time
+    end
+    trajectory.verbosity == :debug ? (@info "Saved checkpoint.") : nothing
+end
+
+function _read_checkpoint(filename, trajectory::Trajectory)
+    trajectory.verbosity == :debug ? (@info "Sequentially running _read_checkpoint subroutine.") : nothing
+    state = jldopen(filename, "r") do file
+        file["state"]
+    end
+    time = jldopen(filename, "r") do file
+        file["time"]
+    end
+    trajectory.verbosity == :debug ? (@info "Loaded checkpoint.") : nothing
+    return state, time
+end
+
 function checkpoint(state, trajectory::Trajectory, time)
+    trajectory.verbosity == :debug ? (@info "Sequentially running checkpoint subroutine.") : nothing
+
     filename = "data/checkpoints/$(hash(trajectory)).jld2" 
+    
     if isfile(filename) # checkpoint file exists
-        trajectory.verbosity == :high ? (@info "Found checkpoint file $(filename), checking age...") : nothing
+        
+        trajectory.verbosity == :debug ? (@info "Found checkpoint file $(filename), checking age...") : nothing
+        
         checkpoint_time = jldopen(filename, "r") do file
             file["time"]
         end
+
+        trajectory.verbosity == :debug ? (@info "Checkpoint time is $(checkpoint_time).") : nothing
+
         if time > checkpoint_time # checkpoint file is older than current time -> overwrite
-            trajectory.verbosity == :high ? (@info "Checkpoint @ $(checkpoint_time), trajectory @ $(time) -> overwrite...") : nothing
-            fileio = Threads.@spawn begin
-                jldopen(filename, "w") do file # overwrite checkpoint file
-                    file["state"] = state
-                    file["time"] = time
-                end
-                trajectory.verbosity == :high ? (@info "Done!") : nothing
-            end
+
+            trajectory.verbosity == :debug ? (@info "Checkpoint @ $(checkpoint_time), trajectory @ $(time) -> overwrite (async)...") : nothing
+            fileio = Threads.@spawn _write_checkpoint(copy(state), copy(time), filename, trajectory)
+            
         else # checkpoint file is newer than current time -> load checkpoint
-            trajectory.verbosity == :high ? (@info "Checkpoint @ $(checkpoint_time), trajectory @ $(time) -> load...") : nothing
-            state = jldopen(filename, "r") do file
-                file["state"]
-            end
-            time = jldopen(filename, "r") do file
-                file["time"]
-            end
+
+            trajectory.verbosity == :debug ? (@info "Checkpoint @ $(checkpoint_time), trajectory @ $(time) -> load...") : nothing
+            
+            state, time = _read_checkpoint(filename, trajectory)
+
             if checkpoint_time != time
                 @warn "Checkpoint time $(checkpoint_time) does not match loaded time $(time), something went wrong!"
             else
-                trajectory.verbosity == :high ? (@info "Successfully loaded checkpoint at time $(time).") : nothing
-                trajectory.verbosity == :low ? (@info "Successfully loaded checkpoint at time $(time).") : nothing
+                trajectory.verbosity == :debug ? (@info "Successfully loaded checkpoint at time $(time).") : nothing
+                trajectory.verbosity == :info ? (@info "Successfully loaded checkpoint at time $(time).") : nothing
             end
         end
+
     else # checkpoint file does not exist
-        trajectory.verbosity == :high ? (@info "No checkpoint file found, creating new checkpoint file...") : nothing
-        fileio = Threads.@spawn begin
-            jldopen(filename, "w") do file # create checkpoint file
-                file["state"] = state
-                file["time"] = time
-            end
-            trajectory.verbosity == :high ? (@info "Done!") : nothing
-        end
+
+        trajectory.verbosity == :debug ? (@info "No checkpoint file found, creating new checkpoint file...") : nothing
+        fileio = Threads.@spawn _write_checkpoint(copy(state), copy(time), filename, trajectory)
+        
     end
     return state, time
-    wait(fileio)
 end
 
 function thermalise!(state, trajectory::Trajectory, time)
+    trajectory.verbosity == :debug ? (@info "Thermalising state...") : nothing
     while time < trajectory.thermalization_steps
-        if trajectory.checkpoints && time % 100 == 0
-            state, time = checkpoint(copy(state), trajectory, copy(time))
+        if trajectory.checkpoints && time % 1000 == 0
+            trajectory.verbosity == :debug ? (@info "Calling checkpoint subroutine at time $(time).") : nothing
+            state, time = checkpoint(state, trajectory, time)
         end
         circuit!(state, trajectory)
         time += 1
@@ -74,7 +95,7 @@ end
 
 function observe!(state::QuantumClifford.AbstractStabilizer, trajectory::Trajectory, time)
     for meas_id in 1:trajectory.number_of_measurements
-        if trajectory.checkpoints && time % 100 == 0
+        if trajectory.checkpoints && time % 1000 == 0
             state, time = checkpoint(copy(state), trajectory, copy(time))
         end
         for step in 1:trajectory.measurement_steps
@@ -97,7 +118,9 @@ end
 
 function run(trajectory::Trajectory)
     time = 0
+    trajectory.verbosity == :debug ? (@info "Starting trajectory $(trajectory.index) of $(trajectory.name).") : nothing
     state = initialise(trajectory)
+    trajectory.verbosity == :debug ? (@info "Initialised state.") : nothing
     thermalise!(state, trajectory, time)
     observe!(state, trajectory, time)
 end
