@@ -54,9 +54,9 @@ function skippable(trajectory::Trajectory)
             end
         end
     end
-    trajectory.verbosity == :debug ? (@info "[skippable] Trajectory $(trajectory.index) of $(trajectory.name) already done -> skip.") : nothing
     if existing_measurements == trajectory.number_of_measurements
         return true
+        trajectory.verbosity == :debug ? (@info "[skippable] Trajectory $(trajectory.index) of $(trajectory.name) already done -> skip.") : nothing
     else
         return false
     end
