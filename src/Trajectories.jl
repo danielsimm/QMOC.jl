@@ -20,6 +20,7 @@ end
 function _write_checkpoint(state, time, filename, trajectory::Trajectory)
     trajectory.verbosity == :debug ? (@info "Spawned _write_checkpoint subroutine.") : nothing
     jldopen(filename, "w") do file
+        println("Writing checkpoint to file $(filename).")
         file["state"] = state
         file["time"] = time
     end
@@ -84,44 +85,58 @@ end
 function thermalise!(state, trajectory::Trajectory, time)
     trajectory.verbosity == :debug ? (@info "Thermalising state...") : nothing
     while time < trajectory.thermalization_steps
-        if trajectory.checkpoints && time % 1000 == 0
+        if trajectory.checkpoints && time % 100 == 0
             trajectory.verbosity == :debug ? (@info "Calling checkpoint subroutine at time $(time).") : nothing
             state, time = checkpoint(state, trajectory, time)
         end
         circuit!(state, trajectory)
         time += 1
     end
+    trajectory.verbosity == :debug ? (@info "Thermalised state at time $(time).") : nothing
 end
 
 function observe!(state::QuantumClifford.AbstractStabilizer, trajectory::Trajectory, time)
     for meas_id in 1:trajectory.number_of_measurements
-        if trajectory.checkpoints && time % 1000 == 0
+        if trajectory.checkpoints && time % 100 < trajectory.measurement_steps
+            trajectory.verbosity == :debug ? (@debug "Calling checkpoint subroutine at time $(time).") : nothing
             state, time = checkpoint(copy(state), trajectory, copy(time))
         end
         for step in 1:trajectory.measurement_steps
             circuit!(state, trajectory)
             time += 1
         end
+        trajectory.verbosity == :debug ? (@debug "Spawning (async) measure subroutine at time $(time).") : nothing
         Threads.@spawn measure(copy(state), trajectory, copy(meas_id))
+        trajectory.verbosity == :debug ? (@debug "Continue observe routine.") : nothing
+
     end
 end
 
 function measure(state, trajectory::Trajectory, meas_id)
-    if !isdir("data/measurements")
-        mkdir("data/measurements")
-    end
+    trajectory.verbosity == :debug ? (@debug "Measuring state (async)...") : nothing
     meas = Measurement(meas_id, entropy(state, trajectory), tmi(state, trajectory), trajectory.params)
+    trajectory.verbosity == :debug ? (@debug "Writing measurement $(meas_id) (async) to file...") : nothing
     jldopen("data/measurements/$(hash(trajectory)).jld2", "a+") do file
         file["$(meas_id)"] = meas
     end
+    trajectory.verbosity == :debug ? (@debug "Finished measurement $(meas_id) of $(trajectory.number_of_measurements).") : nothing
 end
 
 function run(trajectory::Trajectory)
+    if !isdir("data/measurements")
+        mkdir("data/measurements")
+    end
+    tick = now()
     time = 0
-    trajectory.verbosity == :debug ? (@info "Starting trajectory $(trajectory.index) of $(trajectory.name).") : nothing
+    trajectory.verbosity == :debug ? (@debug "Starting trajectory $(trajectory.index) of $(trajectory.name).") : nothing
     state = initialise(trajectory)
-    trajectory.verbosity == :debug ? (@info "Initialised state.") : nothing
+    trajectory.verbosity == :debug ? (@debug "Initialised state.") : nothing
     thermalise!(state, trajectory, time)
     observe!(state, trajectory, time)
+    tock = now()
+    trajectory.verbosity == :info ? (@info "Trajectory time: $(Dates.format(convert(DateTime, tock-tick), "HH:MM:SS")).") : nothing
+    
+    trajectory.verbosity == :debug ? (@debug "Finished trajectory $(trajectory.index) of $(trajectory.name).") : nothing
+    trajectory.verbosity == :debug ? (@info "Time elapsed: $(Dates.format(convert(DateTime, tock-tick), "HH:MM:SS")).") : nothing
 end
 
