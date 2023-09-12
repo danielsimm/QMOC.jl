@@ -6,7 +6,7 @@ function checkMetadataIntegrity(simulation::Simulation)
         for j in eachindex(simulation.ensemble[i])
             trajectoryHash = hash(simulation.ensemble[i][j])
             if !isfile("data/measurements/$(trajectoryHash).jld2")
-                @warn "Integrity corrupted: Trajectory $(trajectoryHash) is part of simulation $(simulation.name) from metadata but can not be found at path 'data/measurements/$(trajectoryHash).jld2'."
+                @warn "Integrity corrupted: Expecting trajectory $(trajectoryHash) as part of simulation $(simulation.name) from metadata but can not be found at path 'data/measurements/$(trajectoryHash).jld2'."
                 isCorrupted = true
             end
         end
