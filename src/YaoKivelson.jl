@@ -10,6 +10,16 @@ struct YaoKivelsonXYZTrajectory <: DecoratedHoneycombTrajectory
     thermalization_steps::Int64
     measurement_steps::Int64
     number_of_measurements::Int64
+    XX_projectors::Vector{PauliOperator}
+    YY_projectors::Vector{PauliOperator}
+    ZZ_projectors::Vector{PauliOperator}
+end
+
+function _YaoKivelsonXYZTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+    XX_projectors = _DHC_XX_operators(size)
+    YY_projectors = _DHC_YY_operators(size)
+    ZZ_projectors = _DHC_ZZ_operators(size)
+    return YaoKivelsonXYZTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements, XX_projectors, YY_projectors, ZZ_projectors)
 end
 
 struct YaoKivelsonJJTrajectory <: DecoratedHoneycombTrajectory
@@ -336,11 +346,11 @@ function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivel
     for subtime in 1:trajectory.nqubits
         p = rand()
         if p < px
-            _DHC_randomXXmeasurement!(state)
+            project!(state, rand(trajectory.XX_projectors), keep_result=false, phases=false)
         elseif p < px + py
-            _DHC_randomYYmeasurement!(state)
+            project!(state, rand(trajectory.YY_projectors), keep_result=false, phases=false)
         elseif p < px + py + pz
-            _DHC_randomZZmeasurement!(state)
+            project!(state, rand(trajectory.ZZ_projectors), keep_result=false, phases=false)
         end
     end
     return nothing

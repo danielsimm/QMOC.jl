@@ -47,17 +47,17 @@ function trajectory(
     index,
     thermalization_steps,
     measurement_steps,
-    number_of_measurements)
+    number_of_measurements) ::Trajectory
     if type == :ChainPP
-        return PPChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+        return _PPChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :ChainPQ
-        return PQChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+        return _PQChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :Kekule
         return KekuleTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :Kitaev
         return KitaevTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :YaoKivelsonXYZ
-        return YaoKivelsonXYZTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+        return _YaoKivelsonXYZTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :YaoKivelsonJJ
         return YaoKivelsonJJTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     else
@@ -65,7 +65,7 @@ function trajectory(
     end
 end
 
-function _number_of_qubits(type::Symbol, size::Int)
+function _number_of_qubits(type::Symbol, size::Int) ::Int
     if type in [:ChainPP, :ChainPQ]
         return size
     elseif type in [:Kekule, :Kitaev]

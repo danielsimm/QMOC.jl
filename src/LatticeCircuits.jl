@@ -12,7 +12,6 @@ include("Geometry.jl")
 include("KitaevKekule.jl")
 include("YaoKivelson.jl")
 include("Chain.jl")
-include("FastProjections.jl")
 include("Parameters.jl")
 include("Simulators.jl")
 
