@@ -52,8 +52,6 @@ function trajectory(
         return PPChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :ChainPQ
         return PQChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
-    elseif type == :ChainPPFast
-        return PPChainTrajectoryFast(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :Kekule
         return KekuleTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :Kitaev
@@ -68,7 +66,7 @@ function trajectory(
 end
 
 function _number_of_qubits(type::Symbol, size::Int)
-    if type in [:ChainPP, :ChainPQ, :ChainPPFast]
+    if type in [:ChainPP, :ChainPQ]
         return size
     elseif type in [:Kekule, :Kitaev]
         return 2 * size^2

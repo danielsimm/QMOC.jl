@@ -10,16 +10,16 @@ test_parameters =
 ]
 ### single trajectory test
 traj = LatticeCircuits.trajectory(
-    :Kekule, 
-    36,
-    2*36^2, 
+    :ChainPPFast, 
+    1024,
+    1024, 
     "trajectory_test", 
     test_parameters[4], 
     true, 
     :debug, 
     1, 
-    3*36, 
-    3, 
+    3*1024, 
+    30, 
     10)
 
 run(traj)

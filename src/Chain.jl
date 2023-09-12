@@ -26,19 +26,6 @@ struct PQChainTrajectory <: ChainTrajectory
     number_of_measurements::Int64
 end
 
-struct PPChainTrajectoryFast <: ChainTrajectory
-    size::Int
-    nqubits::Int
-    name::String
-    params::Vector{Real}
-    checkpoints::Bool
-    verbosity::Symbol
-    index::Int64
-    thermalization_steps::Int64
-    measurement_steps::Int64
-    number_of_measurements::Int64
-end
-
 
 function initialise(trajectory::ChainTrajectory)
     return one(MixedDestabilizer, trajectory.size)
@@ -111,22 +98,6 @@ end
 function circuit!(state::QuantumClifford.AbstractStabilizer, trajectory::ChainTrajectory) # measures XX, YY, ZZ on neighbouring sites (first site chosen randomly) with probability px, py, pz respectively
     for subtime in 1:trajectory.nqubits
         project!(state, random_operator(trajectory), phases=false, keep_result=false)
-    end
-end
-
-function circuit!(state::QuantumClifford.AbstractStabilizer, trajectory::PPChainTrajectoryFast) # measures XX, YY, ZZ on neighbouring sites (first site chosen randomly) with probability px, py, pz respectively
-    px = trajectory.params[1]
-    py = trajectory.params[2]
-    pz = trajectory.params[3]
-    for subtime in 1:trajectory.nqubits
-        probability = rand()
-        if probability < px
-            randomXX!(state, trajectory)
-        elseif probability < (px + py)
-            randomYY!(state, trajectory)
-        else
-            randomZZ!(state, trajectory)
-        end
     end
 end
 
