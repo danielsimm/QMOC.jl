@@ -94,10 +94,10 @@ function hot_start(trajectory::Trajectory)
     return state, time, existing_measurements
 end
 
-function thermalise(state, trajectory::Trajectory, time)
+function thermalise(state, trajectory::Trajectory, time, operators::Array{PauliOperator})
     trajectory.verbosity == :debug ? (@info "[thermalise] Thermalising state...") : nothing
     while time < trajectory.thermalization_steps
-        circuit!(state, trajectory)
+        circuit!(state, trajectory, operators)
         time += 1
         if trajectory.checkpoints && time % 100 == 0
             trajectory.verbosity == :debug ? (@info "[thermalise] Calling checkpoint subroutine at time $(time).") : nothing
@@ -108,12 +108,12 @@ function thermalise(state, trajectory::Trajectory, time)
     return state, time
 end
 
-function measurement_evolve!(state, trajectory::Trajectory)
+function measurement_evolve!(state, trajectory::Trajectory, operators::Array{PauliOperator})
     println("Evolution thread $(Threads.threadid())")
     tick = now()
 
     for step in 1:trajectory.measurement_steps
-        circuit!(state, trajectory)
+        circuit!(state, trajectory, operators)
     end
 
     tock = now()
@@ -145,14 +145,14 @@ function measure(state, trajectory::Trajectory, meas_id, time)
     trajectory.verbosity == :debug ? (@info "[measure] Finished measurement $(meas_id) of $(trajectory.number_of_measurements) in $(tock - tick).") : nothing
 end
 
-function observe(state::QuantumClifford.AbstractStabilizer, trajectory::Trajectory, time, existing_measurements)
+function observe(state::QuantumClifford.AbstractStabilizer, trajectory::Trajectory, time, existing_measurements, operators)
     for meas_id in existing_measurements+1:trajectory.number_of_measurements-1
         # independently spawn measurement and evolution
         
         @sync begin
             trajectory.verbosity == :debug ? (@info "[observe] Asynchronous measurement $(meas_id) at time $(time).") : nothing
             Threads.@spawn measure(copy(state), trajectory, copy(meas_id), copy(time))
-            Threads.@spawn measurement_evolve!(state, trajectory)
+            Threads.@spawn measurement_evolve!(state, trajectory, operators)
             trajectory.verbosity == :debug ? (@info "[observe] Waiting for sync...") : nothing
         end
         trajectory.verbosity == :debug ? (@info "[observe] Synced.") : nothing
@@ -185,9 +185,11 @@ function run(trajectory::Trajectory)
     time = 0
 
     state, time, existing_measurements = hot_start(trajectory)
+
+    operators = get_operators(trajectory)
     
-    state, time = thermalise(state, trajectory, time)
-    state, time = observe(state, trajectory, time, existing_measurements)
+    state, time = thermalise(state, trajectory, time, operators)
+    state, time = observe(state, trajectory, time, existing_measurements, operators)
     
     tock = now()
 

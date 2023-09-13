@@ -110,23 +110,19 @@ function _chain_ZY(size::Int) ::Vector{PauliOperator}
     return unique(ZY)
 end
 
-function random_operator(trajectory::PPChainTrajectory) ::PauliOperator
-    px = trajectory.params[1]
-    py = trajectory.params[2]
-    pz = trajectory.params[3]
-
+function random_operator(trajectory::PPChainTrajectory, operators) ::PauliOperator
     probability = rand()
 
-    if probability < px
-        return rand(trajectory.XX_projectors)
-    elseif probability < (px + py)
-        return rand(trajectory.YY_projectors)
+    if probability < trajectory.params[1]
+        return operators[1, rand(1:trajectory.size)]
+    elseif probability < (trajectory.params[1] + trajectory.params[2])
+        return operators[2, rand(1:trajectory.size)]
     else
-        return rand(trajectory.ZZ_projectors)
+        return operators[3, rand(1:trajectory.size)]
     end
 end
     
-function random_operator(trajectory::PQChainTrajectory) ::PauliOperator
+function random_operator(trajectory::PQChainTrajectory, operators) ::PauliOperator
     px = trajectory.params[1]
     py = trajectory.params[2]
     pz = trajectory.params[3]
@@ -136,27 +132,65 @@ function random_operator(trajectory::PQChainTrajectory) ::PauliOperator
 
     if probability1 < px
         if probability2 < px
-            return rand(trajectory.XX_projectors)
+            return operators[1, rand(1:trajectory.size)]
         elseif probability2 < (px + py)
-            return rand(trajectory.XY_projectors)
+            return operators[2, rand(1:trajectory.size)]
         else
-            return rand(trajectory.XZ_projectors)
+            return operators[3, rand(1:trajectory.size)]
         end
     elseif probability1 < (px + py)
         if probability2 < px
-            return rand(trajectory.YX_projectors)
+            return operators[4, rand(1:trajectory.size)]
         elseif probability2 < (px + py)
-            return rand(trajectory.YY_projectors)
+            return operators[5, rand(1:trajectory.size)]
         else
-            return rand(trajectory.YZ_projectors)
+            return operators[6, rand(1:trajectory.size)]
         end
     else
         if probability2 < px
-            return rand(trajectory.ZX_projectors)
+            return operators[7, rand(1:trajectory.size)]
         elseif probability2 < (px + py)
-            return rand(trajectory.ZY_projectors)
+            return operators[8, rand(1:trajectory.size)]
         else
-            return rand(trajectory.ZZ_projectors)
+            return operators[9, rand(1:trajectory.size)]
         end
     end
+end
+
+function get_operators(trajectory::PPChainTrajectory)
+    XX = _chain_XX(trajectory.size)
+    YY = _chain_YY(trajectory.size)
+    ZZ = _chain_ZZ(trajectory.size)
+    matrix = Matrix{PauliOperator}(undef, 3, trajectory.size)
+    for i in 1:trajectory.size
+        matrix[1, i] = XX[i]
+        matrix[2, i] = YY[i]
+        matrix[3, i] = ZZ[i]
+    end
+    return matrix
+end
+
+function get_operators(trajectory::PQChainTrajectory)
+    XX = _chain_XX(trajectory.size)
+    XY = _chain_XY(trajectory.size)
+    XZ = _chain_XZ(trajectory.size)
+    YX = _chain_YX(trajectory.size)
+    YY = _chain_YY(trajectory.size)
+    YZ = _chain_YZ(trajectory.size)
+    ZX = _chain_ZX(trajectory.size)
+    ZY = _chain_ZY(trajectory.size)
+    ZZ = _chain_ZZ(trajectory.size)
+    matrix = Matrix{PauliOperator}(undef, 9, trajectory.size)
+    for i in 1:trajectory.size
+        matrix[1, i] = XX[i]
+        matrix[2, i] = XY[i]
+        matrix[3, i] = XZ[i]
+        matrix[4, i] = YX[i]
+        matrix[5, i] = YY[i]
+        matrix[6, i] = YZ[i]
+        matrix[7, i] = ZX[i]
+        matrix[8, i] = ZY[i]
+        matrix[9, i] = ZZ[i]
+    end
+    return matrix
 end

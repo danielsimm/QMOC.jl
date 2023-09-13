@@ -11,9 +11,6 @@ struct PPChainTrajectory <: ChainTrajectory
     thermalization_steps::Int64
     measurement_steps::Int64
     number_of_measurements::Int64
-    XX_projectors::Vector{PauliOperator}
-    YY_projectors::Vector{PauliOperator}
-    ZZ_projectors::Vector{PauliOperator}
 end
 
 struct PQChainTrajectory <: ChainTrajectory
@@ -27,47 +24,18 @@ struct PQChainTrajectory <: ChainTrajectory
     thermalization_steps::Int64
     measurement_steps::Int64
     number_of_measurements::Int64
-    XX_projectors::Vector{PauliOperator}
-    XY_projectors::Vector{PauliOperator}
-    XZ_projectors::Vector{PauliOperator}
-    YX_projectors::Vector{PauliOperator}
-    YY_projectors::Vector{PauliOperator}
-    YZ_projectors::Vector{PauliOperator}
-    ZX_projectors::Vector{PauliOperator}
-    ZY_projectors::Vector{PauliOperator}
-    ZZ_projectors::Vector{PauliOperator}
 end
 
 include("ChainOperators.jl")
-
-function _PPChainTrajectory(size::Int, nqubits::Int, name::String, params, checkpoints::Bool, verbosity::Symbol, index::Int64, thermalization_steps::Int64, measurement_steps::Int64, number_of_measurements::Int64) ::PPChainTrajectory
-    XX_projectors = _chain_XX(nqubits)
-    YY_projectors = _chain_YY(nqubits)
-    ZZ_projectors = _chain_ZZ(nqubits)
-    return PPChainTrajectory(size, nqubits, name, params, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements, XX_projectors, YY_projectors, ZZ_projectors)
-end
-
-function _PQChainTrajectory(size::Int, nqubits::Int, name::String, params, checkpoints::Bool, verbosity::Symbol, index::Int64, thermalization_steps::Int64, measurement_steps::Int64, number_of_measurements::Int64) ::PQChainTrajectory
-    XX_projectors = _chain_XX(nqubits)
-    XY_projectors = _chain_XY(nqubits)
-    XZ_projectors = _chain_XZ(nqubits)
-    YX_projectors = _chain_YX(nqubits)
-    YY_projectors = _chain_YY(nqubits)
-    YZ_projectors = _chain_YZ(nqubits)
-    ZX_projectors = _chain_ZX(nqubits)
-    ZY_projectors = _chain_ZY(nqubits)
-    ZZ_projectors = _chain_ZZ(nqubits)
-    return PQChainTrajectory(size, nqubits, name, params, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements, XX_projectors, XY_projectors, XZ_projectors, YX_projectors, YY_projectors, YZ_projectors, ZX_projectors, ZY_projectors, ZZ_projectors)
-end
 
 
 function initialise(trajectory::ChainTrajectory) ::QuantumClifford.MixedDestabilizer
     return one(MixedDestabilizer, trajectory.size)
 end
 
-function circuit!(state::QuantumClifford.AbstractStabilizer, trajectory::ChainTrajectory) # measures XX, YY, ZZ on neighbouring sites (first site chosen randomly) with probability px, py, pz respectively
+function circuit!(state::QuantumClifford.AbstractStabilizer, trajectory::ChainTrajectory, operators) # measures XX, YY, ZZ on neighbouring sites (first site chosen randomly) with probability px, py, pz respectively
     for subtime in 1:trajectory.nqubits
-        project!(state, random_operator(trajectory), phases=false, keep_result=false)
+        project!(state, random_operator(trajectory, operators), phases=false, keep_result=false)
     end
 end
 

@@ -49,9 +49,9 @@ function trajectory(
     measurement_steps,
     number_of_measurements) ::Trajectory
     if type == :ChainPP
-        return _PPChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+        return PPChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :ChainPQ
-        return _PQChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+        return PQChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :Kekule
         return KekuleTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :Kitaev
