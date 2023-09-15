@@ -65,6 +65,7 @@ end
 
 ### Honeycomb ###
 
+function plot_setup()
 function operatorqubits(operator::PauliOperator)
     qubits = []
     strings = []
@@ -182,7 +183,6 @@ function HC_plot_lattice_kekule(lattice::Vector{HCSite}, highlight=nothing; labe
     hidespines!(ax)
     return fig
 end
-
 
 function DHC_plot_lattice(lattice::Vector{DHCSite}, highlight = nothing; label=false)
     background = RGBf(236/256, 240/256, 241/256)

@@ -24,8 +24,7 @@ function simulation(
     nqubits::Int64=_number_of_qubits(type, size),
     thermalization_steps::Int64=3 * size,
     number_of_measurements::Int64=100,
-    measurement_steps::Int64=3
-)
+    measurement_steps::Int64=3)
     ensemble = Vector{Vector{Trajectory}}(undef, length(parameter_set))
     for i in eachindex(ensemble)
         ensemble[i] = Vector{Trajectory}(undef, num_trajectories)
@@ -34,6 +33,10 @@ function simulation(
         end
     end
     return Simulation(type, size, nqubits, name, checkpoints, verbosity, thermalization_steps, measurement_steps, number_of_measurements, num_trajectories, parameter_set, ensemble)
+end
+
+function test_simulation(type)
+    return simulation(type, 12, "test", 4, [[1//3, 1//3, 1//3], [1//2, 1//2, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]]; checkpoints=true, verbosity=:debug)
 end
 
 function trajectory(
@@ -65,6 +68,10 @@ function trajectory(
     end
 end
 
+function test_trajectory(type)
+    return trajectory(type, 12, _number_of_qubits(type, 12), "test", [1//3, 1//3, 1//3], true, :debug, 1, 36, 3, 10)
+end
+
 function _number_of_qubits(type::Symbol, size::Int) ::Int
     if type in [:ChainPP, :ChainPQ]
         return size
@@ -76,7 +83,6 @@ function _number_of_qubits(type::Symbol, size::Int) ::Int
         error("Type $(type) not implemented.")
     end
 end
-
 
 function simulate(simulation::Simulation)
 
