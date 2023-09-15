@@ -1,5 +1,3 @@
-using PrettyTables
-
 function checkMetadataIntegrity(simulation::Simulation)
     isCorrupted = false
     for i in eachindex(simulation.ensemble)
@@ -15,15 +13,14 @@ function checkMetadataIntegrity(simulation::Simulation)
 end
 
 function checkMetadataIntegrity()
-    integrity = true
     if isfile("data/metadata.jld2")
         jldopen("data/metadata.jld2", "r") do file
             for simulationName in keys(file)
-                integrity *= !checkMetadataIntegrity(file[simulationName])
+                METADATA_INTEGRITY *= !checkMetadataIntegrity(file[simulationName])
             end
         end
     end
-    @info "Metadata integrity: $(integrity ? "OK" : "CORRUPTED")"
+    @info "Metadata integrity: $(METADATA_INTEGRITY ? "OK" : "CORRUPTED")"
 end
 
 function commitMetadata(simulation::Simulation)
@@ -59,4 +56,12 @@ function printMetadata()
     pretty_table(data, ["name", "type", "L", "# trajectories", "# measurements"])
 end
 
+function average_observable(trajectory)
+end
+
+function loadSimulationArchive() :: Vector{Simulation}
+    SimulationArchive = []
+    # load all available Simulations into the global SimulationArchive object
+    return SimulationArchive
+end
 

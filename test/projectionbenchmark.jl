@@ -25,4 +25,6 @@ traj = LatticeCircuits.trajectory(
 
 init = LatticeCircuits.initialise(traj)
 
-@benchmark LatticeCircuits.circuit!($(init), traj)
+operators = LatticeCircuits.get_operators(traj)
+
+@benchmark LatticeCircuits.circuit!($(init), $(traj), $(operators))
