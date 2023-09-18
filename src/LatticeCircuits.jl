@@ -20,6 +20,7 @@ include("YaoKivelson.jl")
 include("Chain.jl")
 include("Parameters.jl")
 include("Simulators.jl")
+include("Analysis.jl")
 if PLOTTING
     include("Plotting.jl")
 end
@@ -41,6 +42,9 @@ export Simulation, simulation, simulate
 
 # from Trajectories.jl
 export run, Trajectory, Measurement
+
+# from Analysis.jl
+export evaluate
 
 # from metadataHandling.jl
 export printMetadata

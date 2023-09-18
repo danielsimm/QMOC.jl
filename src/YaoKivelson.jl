@@ -150,6 +150,15 @@ function entropy(state::QuantumClifford.MixedDestabilizer, trajectory::Decorated
     return EE
 end
 
+function subsystem_labels(trajectory::DecoratedHoneycombTrajectory)
+    L = trajectory.size
+    subsystems = zeros(L+1)
+    for i in 1:L
+        subsystems[i+1] = i
+    end
+    return subsystems
+end
+
 function tmi(state::QuantumClifford.MixedDestabilizer, trajectory::DecoratedHoneycombTrajectory)
     algo=Val(:rref)
     L = trajectory.size

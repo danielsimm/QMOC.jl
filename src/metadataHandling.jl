@@ -67,11 +67,9 @@ function printMetadata()
         push!(data,"$(simulation.num_trajectrories)")
         push!(data,"$(simulation.number_of_measurements)")
     end
-    reshape(data, 5, numberOfSimulations)
-    pretty_table(data, ["name", "type", "L", "# trajectories", "# measurements"])
-end
-
-function average_observable(trajectory)
+    data = permutedims(reshape(data, 5, numberOfSimulations))
+    pretty_table(data; header=["Filename", "Simulation Type", "L", "Number of Trajectories", "Number of Measurements"])
+    
 end
 
 function loadSimulationArchive()

@@ -2,11 +2,10 @@ import Base: hash, run
 abstract type Trajectory end
 
 struct Measurement
-    meas_id::Int64
     entropy::Vector{Float64}
     tmi::Float64
-    parameters::Vector{Any}
 end
+
 
 """
     hash(trajectory::Trajectory) -> UInt
@@ -128,7 +127,7 @@ function measure(state, trajectory::Trajectory, meas_id, time)
     filename = "data/measurements/$(hash(trajectory)).jld2" 
 
     trajectory.verbosity == :debug ? (@info "[measure] Measuring data point $(meas_id) of $(trajectory.number_of_measurements...)") : nothing
-    meas = Measurement(meas_id, entropy(state, trajectory), tmi(state, trajectory), trajectory.params)
+    meas = Measurement(entropy(state, trajectory), tmi(state, trajectory))
 
     jldopen(filename, "a+") do file
         trajectory.verbosity == :debug ? (@info "[measure] Writing measurement $(meas_id) to file $(filename).") : nothing

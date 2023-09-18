@@ -52,6 +52,11 @@ function entropy(state::QuantumClifford.MixedDestabilizer, trajectory::ChainTraj
     return EE
 end
 
+function subsystem_labels(trajectory::ChainTrajectory)
+    N = trajectory.nqubits
+    return round.(Int, collect(range(0, N, 33)))
+end
+
 function tmi(state::QuantumClifford.MixedDestabilizer, trajectory::ChainTrajectory; algo=Val(:rref)) # no geometry
     N = trajectory.nqubits
     A = 1:Int(N/4)
