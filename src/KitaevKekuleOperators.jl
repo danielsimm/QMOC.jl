@@ -63,6 +63,7 @@ function _HC_red_operators(L::Int64)
         end
         operators[k] = PauliOperator(0x00, Xarr, Zarr)
     end
+    return operators
 end
 
 function _HC_green_operators(L::Int64)
@@ -86,6 +87,7 @@ function _HC_green_operators(L::Int64)
         end
         operators[k] = PauliOperator(0x00, Xarr, Zarr)
     end
+    return operators
 end
 
 function _HC_blue_operators(L::Int64)
@@ -109,6 +111,7 @@ function _HC_blue_operators(L::Int64)
         end
         operators[k] = PauliOperator(0x00, Xarr, Zarr)
     end
+    return operators
 end
 
 function _HC_WilsonPlaquette_operator(i::Int64, L::Int64)

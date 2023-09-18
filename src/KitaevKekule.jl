@@ -33,17 +33,17 @@ include("KitaevKekuleOperators.jl")
 
 function get_operators(trajectory::KitaevTrajectory)
     matrix = Matrix{PauliOperator}(undef, 3, trajectory.size^2)
-    matrix[1, :] = _HC_XX_operators(trajectory.size)
-    matrix[2, :] = _HC_YY_operators(trajectory.size)
-    matrix[3, :] = _HC_ZZ_operators(trajectory.size)
+    matrix[1, :] .= _HC_XX_operators(trajectory.size)
+    matrix[2, :] .= _HC_YY_operators(trajectory.size)
+    matrix[3, :] .= _HC_ZZ_operators(trajectory.size)
     return matrix
 end
 
 function get_operators(trajectory::KekuleTrajectory)
     matrix = Matrix{PauliOperator}(undef, 9, trajectory.size^2)
-    matrix[1, :] = _HC_red_operators(trajectory.size)
-    matrix[2, :] = _HC_green_operators(trajectory.size)
-    matrix[3, :] = _HC_blue_operators(trajectory.size)
+    matrix[1, :] .= _HC_red_operators(trajectory.size)
+    matrix[2, :] .= _HC_green_operators(trajectory.size)
+    matrix[3, :] .= _HC_blue_operators(trajectory.size)
     return matrix
 end
     

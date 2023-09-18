@@ -45,7 +45,7 @@ end
 function entropy(state::QuantumClifford.MixedDestabilizer, trajectory::ChainTrajectory; algo=Val(:rref))
     N = trajectory.nqubits
     EE = zeros(33)
-    subsystems = Int.(collect(range(0, N, 33)))
+    subsystems = round.(Int, collect(range(0, N, 33)))
     for i in 2:32
         EE[i] = QuantumClifford.entanglement_entropy(state, 1:subsystems[i], algo)
     end

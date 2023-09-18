@@ -10,8 +10,8 @@ using PrettyTables
 import Distributed: @distributed, @everywhere, fetch, myid, pmap, remotecall
 import JLD2: jldopen, load
 
-const PLOTTING = false
-global METADATA_INTEGRITY = true ::Bool
+const PLOTTING = true ::Bool
+
 
 include("Trajectories.jl")
 include("Geometry.jl")
@@ -24,6 +24,12 @@ if PLOTTING
     include("Plotting.jl")
 end
 
+if !isdir("data")
+    mkdir("data")
+end
+if !isdir("data/metadata")
+    mkdir("data/metadata")
+end
 include("metadataHandling.jl")
 checkMetadataIntegrity()
 SimulationArchive = loadSimulationArchive()
@@ -39,6 +45,6 @@ export run, Trajectory, Measurement
 # from metadataHandling.jl
 export printMetadata
 
-export SimulationArchive
+# export SimulationArchive - probably better not exported to keep in seperate namespace
 
 end

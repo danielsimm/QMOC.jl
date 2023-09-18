@@ -66,6 +66,7 @@ end
 ### Honeycomb ###
 
 function plot_setup()
+end
 function operatorqubits(operator::PauliOperator)
     qubits = []
     strings = []
@@ -86,7 +87,7 @@ function operatorqubits(operator::PauliOperator)
     return qubits, strings
 end
 
-function HC_plot_lattice(lattice::Vector{HCSite}, highlight = nothing; label=false)
+function HC_plot_lattice(lattice::Vector{HoneycombLatticeSite}, highlight = nothing; label=false)
     background = RGBf(236/256, 240/256, 241/256)
     latticeblack = RGBf(28/256, 40/256, 51/256)
     latticered = RGBf(231/256, 76/256, 60/256)
@@ -133,7 +134,7 @@ function HC_plot_lattice(lattice::Vector{HCSite}, highlight = nothing; label=fal
     return fig
 end
 
-function HC_plot_lattice_kekule(lattice::Vector{HCSite}, highlight=nothing; label=false)
+function HC_plot_lattice_kekule(lattice::Vector{HoneycombLatticeSite}, highlight=nothing; label=false)
     posterblue = colorant"#3498DB";
     postergreen = colorant"#46AD77";
     posterred = colorant"#E74C3C";
@@ -184,7 +185,7 @@ function HC_plot_lattice_kekule(lattice::Vector{HCSite}, highlight=nothing; labe
     return fig
 end
 
-function DHC_plot_lattice(lattice::Vector{DHCSite}, highlight = nothing; label=false)
+function DHC_plot_lattice(lattice::Vector{DecoratedHoneycombLatticeSite}, highlight = nothing; label=false)
     background = RGBf(236/256, 240/256, 241/256)
     latticeblack = RGBf(28/256, 40/256, 51/256)
     latticered = RGBf(231/256, 76/256, 60/256)
@@ -229,7 +230,7 @@ function DHC_plot_lattice(lattice::Vector{DHCSite}, highlight = nothing; label=f
     return fig
 end
 
-function DHC_plot_lattice(lattice::Vector{DHCSite}, highlight::QuantumClifford.PauliOperator; label=false)
+function DHC_plot_lattice(lattice::Vector{DecoratedHoneycombLatticeSite}, highlight::QuantumClifford.PauliOperator; label=false)
     background = RGBf(236/256, 240/256, 241/256)
     latticeblack = RGBf(28/256, 40/256, 51/256)
     latticered = RGBf(231/256, 76/256, 60/256)
@@ -276,7 +277,7 @@ function DHC_plot_lattice(lattice::Vector{DHCSite}, highlight::QuantumClifford.P
     return fig
 end
 
-function DHC_plot_lattice(lattice::Vector{DHCSite}, highlights::Vector{QuantumClifford.PauliOperator}; label=false)
+function DHC_plot_lattice(lattice::Vector{DecoratedHoneycombLatticeSite}, highlights::Vector{QuantumClifford.PauliOperator}; label=false)
     background = RGBf(236/256, 240/256, 241/256)
     latticeblack = RGBf(28/256, 40/256, 51/256)
     latticered = RGBf(231/256, 76/256, 60/256)

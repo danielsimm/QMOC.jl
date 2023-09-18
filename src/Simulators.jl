@@ -36,7 +36,7 @@ function simulation(
 end
 
 function test_simulation(type)
-    return simulation(type, 12, "test", 4, [[1//3, 1//3, 1//3], [1//2, 1//2, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]]; checkpoints=true, verbosity=:debug)
+    return simulation(type, 12, "test_$(type)", 4, [[1//3, 1//3, 1//3], [1//2, 1//2, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]]; checkpoints=true, verbosity=:debug)
 end
 
 function trajectory(
@@ -60,7 +60,7 @@ function trajectory(
     elseif type == :Kitaev
         return KitaevTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :YaoKivelsonXYZ
-        return _YaoKivelsonXYZTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+        return YaoKivelsonXYZTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :YaoKivelsonJJ
         return YaoKivelsonJJTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     else
@@ -69,7 +69,7 @@ function trajectory(
 end
 
 function test_trajectory(type)
-    return trajectory(type, 12, _number_of_qubits(type, 12), "test", [1//3, 1//3, 1//3], true, :debug, 1, 36, 3, 10)
+    return trajectory(type, 12, _number_of_qubits(type, 12), "test_$(type)", [1//3, 1//3, 1//3], true, :debug, 1, 36, 3, 10)
 end
 
 function _number_of_qubits(type::Symbol, size::Int) ::Int
