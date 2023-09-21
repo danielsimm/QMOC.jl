@@ -110,6 +110,50 @@ function _chain_ZY(size::Int) ::Vector{PauliOperator}
     return unique(ZY)
 end
 
+function _chain_blue(size::Int) #ZZ
+    blue = Vector{PauliOperator}(undef, Int(size/3))
+    for i in 1:size
+        if mod1(i, 3) == 1
+            Xarr = falses(size)
+            Zarr = falses(size)
+            Zarr[i] = true
+            Zarr[mod1(i+1, size)] = true
+            blue[div(i,3)+1] = PauliOperator(0x00, Xarr, Zarr)
+        end
+    end
+    return blue
+end
+
+function _chain_red(size::Int) #XX
+    red = Vector{PauliOperator}(undef, Int(size/3))
+    for i in 1:size
+        if mod1(i, 3) == 2
+            Xarr = falses(size)
+            Zarr = falses(size)
+            Xarr[i] = true
+            Xarr[mod1(i+1, size)] = true
+            red[div(i,3)+1] = PauliOperator(0x00, Xarr, Zarr)
+        end
+    end
+    return red
+end
+
+function _chain_green(size::Int) #YY
+    green = Vector{PauliOperator}(undef, Int(size/3))
+    for i in 1:size
+        if mod1(i, 3) == 2
+            Xarr = falses(size)
+            Zarr = falses(size)
+            Xarr[i] = true
+            Xarr[mod1(i+1, size)] = true
+            Zarr[i] = true
+            Zarr[mod1(i+1, size)] = true
+            green[div(i,3)+1] = PauliOperator(0x00, Xarr, Zarr)
+        end
+    end
+    return green
+end
+
 function random_operator(trajectory::PPChainTrajectory, operators) ::PauliOperator
     probability = rand()
 
@@ -157,6 +201,18 @@ function random_operator(trajectory::PQChainTrajectory, operators) ::PauliOperat
     end
 end
 
+function random_operator(trajectory::KekuleChainTrajectory, operators) ::PauliOperator
+    probability = rand()
+
+    if probability < trajectory.params[1]
+        return operators[1, rand(1:Int(trajectory.size/3))]
+    elseif probability < (trajectory.params[1] + trajectory.params[2])
+        return operators[2, rand(1:Int(trajectory.size/3))]
+    else
+        return operators[3, rand(1:Int(trajectory.size/3))]
+    end
+end
+
 function get_operators(trajectory::PPChainTrajectory)
     XX = _chain_XX(trajectory.size)
     YY = _chain_YY(trajectory.size)
@@ -191,6 +247,19 @@ function get_operators(trajectory::PQChainTrajectory)
         matrix[7, i] = ZX[i]
         matrix[8, i] = ZY[i]
         matrix[9, i] = ZZ[i]
+    end
+    return matrix
+end
+
+function get_operators(trajectory::KekuleChainTrajectory)
+    red = _chain_red(trajectory.size)
+    green = _chain_green(trajectory.size)
+    blue = _chain_blue(trajectory.size)
+    matrix = Matrix{PauliOperator}(undef, 3, Int(trajectory.size/3))
+    for i in 1:trajectory.size
+        matrix[1, i] = red[i]
+        matrix[2, i] = green[i]
+        matrix[3, i] = blue[i]
     end
     return matrix
 end

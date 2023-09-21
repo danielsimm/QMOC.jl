@@ -108,7 +108,6 @@ function thermalise(state, trajectory::Trajectory, time, operators::Array{PauliO
 end
 
 function measurement_evolve!(state, trajectory::Trajectory, operators::Array{PauliOperator})
-    println("Evolution thread $(Threads.threadid())")
     tick = now()
 
     for step in 1:trajectory.measurement_steps
@@ -121,7 +120,6 @@ function measurement_evolve!(state, trajectory::Trajectory, operators::Array{Pau
 end
 
 function measure(state, trajectory::Trajectory, meas_id, time)
-    println("Measurement thread $(Threads.threadid())")
     tick = now()
 
     filename = "data/measurements/$(hash(trajectory)).jld2" 

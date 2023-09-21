@@ -3,7 +3,7 @@ function average(trajectory::Trajectory)
     measurements = Vector{Measurement}(undef, trajectory.number_of_measurements)
     jldopen(filename, "r") do file
         for t in 1:trajectory.number_of_measurements
-            measurements[t] = file["t"]
+            measurements[t] = file["$(t)"]
         end
     end
     EE = zeros(length(subsystem_labels(trajectory)))
@@ -20,8 +20,8 @@ end
 function average(traj_vec::Vector{Trajectory})
     EE_arr = [average(traj).entropy for traj in traj_vec]
     TMI_arr = [average(traj).tmi for traj in traj_vec]
-    EE = mean(reduce(vcat, EE_arr), dims=2)
-    ΔEE = std(reduce(vcat, EE_arr), dims=2)
+    EE = mean(permutedims(reduce(hcat, EE_arr)), dims=1)
+    ΔEE = std(permutedims(reduce(hcat, EE_arr)), dims=1)
     TMI = mean(TMI_arr)
     ΔTMI = std(TMI_arr)
     return EE, ΔEE, TMI, ΔTMI
@@ -40,3 +40,7 @@ function evaluate(simulation::Simulation, observable::Symbol)
         error("Observable $(observable) not implemented, choose from [:I3, :ΔI3, :SvN, :ΔSvN].")
     end
 end
+
+evaluate(sim_name::String, Observable::Symbol) = evaluate(loadSimulation(sim_name), Observable)
+evaluate(simulation::Simulation) = evaluate(simulation, :SvN)
+evaluate(sim_name::String) = evaluate(sim_name, :SvN)

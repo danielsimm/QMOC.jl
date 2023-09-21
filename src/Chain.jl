@@ -26,6 +26,19 @@ struct PQChainTrajectory <: ChainTrajectory
     number_of_measurements::Int64
 end
 
+struct KekuleChainTrajectory <: ChainTrajectory
+    size::Int
+    nqubits::Int
+    name::String
+    params::Vector{Real}
+    checkpoints::Bool
+    verbosity::Symbol
+    index::Int64
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
+end
+
 include("ChainOperators.jl")
 
 
@@ -44,9 +57,19 @@ end
 
 function entropy(state::QuantumClifford.MixedDestabilizer, trajectory::ChainTrajectory; algo=Val(:rref))
     N = trajectory.nqubits
-    EE = zeros(33)
-    subsystems = round.(Int, collect(range(0, N, 33)))
-    for i in 2:32
+    EE = zeros(65)
+    subsystems = round.(Int, collect(range(0, N, 65)))
+    for i in 2:64
+        EE[i] = QuantumClifford.entanglement_entropy(state, 1:subsystems[i], algo)
+    end
+    return EE
+end
+
+function entropy(state::QuantumClifford.MixedDestabilizer, trajectory::KekuleChainTrajectory; algo=Val(:rref))
+    N = trajectory.nqubits
+    EE = zeros(Int(N/3)+1)
+    subsystems = collect(range(0, N, step=3))
+    for i in 2:Int(N/3)
         EE[i] = QuantumClifford.entanglement_entropy(state, 1:subsystems[i], algo)
     end
     return EE
@@ -54,7 +77,7 @@ end
 
 function subsystem_labels(trajectory::ChainTrajectory)
     N = trajectory.nqubits
-    return round.(Int, collect(range(0, N, 33)))
+    return round.(Int, collect(range(0, N, 65)))
 end
 
 function tmi(state::QuantumClifford.MixedDestabilizer, trajectory::ChainTrajectory; algo=Val(:rref)) # no geometry

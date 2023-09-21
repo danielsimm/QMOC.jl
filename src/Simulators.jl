@@ -20,7 +20,7 @@ function simulation(
     num_trajectories::Int64,
     parameter_set;
     checkpoints::Bool=false,
-    verbosity::Symbol=:low,
+    verbosity::Symbol=:info,
     nqubits::Int64=_number_of_qubits(type, size),
     thermalization_steps::Int64=3 * size,
     number_of_measurements::Int64=100,
@@ -55,6 +55,8 @@ function trajectory(
         return PPChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :ChainPQ
         return PQChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+    elseif type == :ChainKekule
+        return KekuleChainTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :Kekule
         return KekuleTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :Kitaev
@@ -102,3 +104,27 @@ function simulate(simulation::Simulation)
 
 end
 
+Base.show(io::IO, sim::Simulation) = 
+print(io,
+"--- ", sim.name, " ---", "\n",
+"Type: ", sim.type, "\n",
+"Size: ", sim.size, "\n",
+"Number of qubits: ", sim.nqubits, "\n",
+"Checkpoints: ", sim.checkpoints, "\n",
+"Verbosity: ", sim.verbosity, "\n",
+"Thermalization steps: ", sim.thermalization_steps, "\n",
+"Measurements: ", sim.number_of_measurements, " @ ", sim.measurement_steps, " steps", "\n",
+"Number of trajectories: ", sim.num_trajectrories, "\n")
+
+Base.show(io::IO, traj::Trajectory) =
+print(io,
+"--- ", typeof(traj), " ---", "\n",
+"Name: ", traj.name, "\n",
+"Size: ", traj.size, "\n",
+"Number of qubits: ", traj.nqubits, "\n",
+"Checkpoints: ", traj.checkpoints, "\n",
+"Verbosity: ", traj.verbosity, "\n",
+"Index: ", traj.index, "\n",
+"Thermalization steps: ", traj.thermalization_steps, "\n",
+"Measurements: ", traj.number_of_measurements, " @ ", traj.measurement_steps, " steps", "\n",
+"Parameters: ", traj.params, "\n")

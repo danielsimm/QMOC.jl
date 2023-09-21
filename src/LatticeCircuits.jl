@@ -10,7 +10,7 @@ using PrettyTables
 import Distributed: @distributed, @everywhere, fetch, myid, pmap, remotecall
 import JLD2: jldopen, load
 
-const PLOTTING = true ::Bool
+const PLOTTING = false ::Bool
 
 
 include("Trajectories.jl")
@@ -32,10 +32,11 @@ if !isdir("data/metadata")
     mkdir("data/metadata")
 end
 include("metadataHandling.jl")
-checkMetadataIntegrity()
-SimulationArchive = loadSimulationArchive()
+# checkMetadataIntegrity()
+global SimulationArchive = loadSimulationArchive()
+export SimulationArchive
 
-@info "LatticeCircuits.jl loaded on worker $(myid()) with $(Threads.nthreads()) threads."
+println("LatticeCircuits.jl loaded on worker $(myid()) with $(Threads.nthreads()) threads.")
 
 # from Simulators.jl
 export Simulation, simulation, simulate
@@ -47,8 +48,9 @@ export run, Trajectory, Measurement
 export evaluate
 
 # from metadataHandling.jl
-export printMetadata
+export printMetadata, loadSimulation, missingTrajectories
 
-# export SimulationArchive - probably better not exported to keep in seperate namespace
+# from Parameters.jl
+export parameter_full, parameter_wedge, parameter_line
 
 end
