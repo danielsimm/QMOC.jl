@@ -97,7 +97,7 @@ function simulate(simulation::Simulation)
         end
     end
 
-    pmap(run, trajectories)
+    pmap(run, trajectories; retry_delays = zeros(3))
 
     # commit metadata to file
     commitMetadata(simulation)

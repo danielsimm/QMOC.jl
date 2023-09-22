@@ -46,6 +46,7 @@ function skippable(trajectory::Trajectory)
             file["average"]
         end
         return true
+        trajectory.verbosity == :debug ? (@info "[skippable] Trajectory $(trajectory.index) of $(trajectory.name) already done -> skip.") : nothing
     catch
         if isfile(filename2)
             for i in 1:trajectory.number_of_measurements
