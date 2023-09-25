@@ -4,6 +4,16 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+end
+
 # ╔═╡ efdf9154-56cc-11ee-172c-d97c3a1f54c1
 # ╠═╡ show_logs = false
 begin
@@ -23,10 +33,6 @@ using CairoMakie
 
 # ╔═╡ 74ef1f91-634f-48f9-9ab2-d1a5081b5a43
 using CurveFit
-
-# ╔═╡ 657ea209-03ce-4167-9cfa-2b92e6887dde
-# ╠═╡ show_logs = false
-printMetadata()
 
 # ╔═╡ 7c1b93f3-7f77-469d-9a2b-d78b33ffa57a
 begin
@@ -50,6 +56,9 @@ EE_x_axis = xfunc.(1:1:63);
 
 # ╔═╡ 655ab63e-49c4-46d9-ba8e-17d2765dc5d7
 params = loadSimulation("PPcritical1024").parameter_set;
+
+# ╔═╡ 5c39da72-f370-4212-8d82-1ba9870a152b
+@bind index PlutoUI.Slider(1:40)
 
 # ╔═╡ 5549f662-6861-4615-9590-4eca1f0b81b6
 begin
@@ -105,28 +114,29 @@ begin
 	fig
 end
 
-# ╔═╡ bdb8d1a4-57d6-4d92-bdab-df0d59478cf5
-index = 40
+# ╔═╡ 0b0e26d3-588c-44e7-9445-2faf8238d226
+SimulationArchive = LatticeCircuits.loadSimulationArchive()
 
-# ╔═╡ 5c39da72-f370-4212-8d82-1ba9870a152b
-# ╠═╡ disabled = true
-#=╠═╡
-@bind index PlutoUI.Slider(1:40)
-  ╠═╡ =#
+# ╔═╡ 1d9ecf7b-df53-4418-a870-d67e45f21059
+LatticeCircuits.loadSimulationArchive()
+
+# ╔═╡ 9f6243f6-c0e0-4e14-a332-964c80be4122
+evaluate(loadSimulation("PPPhasetransition128"), :I3)
 
 # ╔═╡ Cell order:
-# ╟─efdf9154-56cc-11ee-172c-d97c3a1f54c1
-# ╟─cadc2aec-5e51-4da9-ad4e-4938fa359d36
-# ╟─fb05c306-f352-4151-9fac-42553112a837
-# ╟─657ea209-03ce-4167-9cfa-2b92e6887dde
-# ╟─7c1b93f3-7f77-469d-9a2b-d78b33ffa57a
-# ╟─837a6cdf-348b-4984-a9b3-597a3790ae11
-# ╟─d0f70fa1-fa60-4375-86c0-f16ff96bf4f1
-# ╟─85ecbdcf-0faf-4b15-a3f7-e3a89f2c4897
-# ╟─655ab63e-49c4-46d9-ba8e-17d2765dc5d7
-# ╟─fc66e84b-1f09-40c0-8fbd-38546998a7cf
-# ╟─74ef1f91-634f-48f9-9ab2-d1a5081b5a43
+# ╠═efdf9154-56cc-11ee-172c-d97c3a1f54c1
+# ╠═cadc2aec-5e51-4da9-ad4e-4938fa359d36
+# ╠═fb05c306-f352-4151-9fac-42553112a837
+# ╠═7c1b93f3-7f77-469d-9a2b-d78b33ffa57a
+# ╠═837a6cdf-348b-4984-a9b3-597a3790ae11
+# ╠═d0f70fa1-fa60-4375-86c0-f16ff96bf4f1
+# ╠═85ecbdcf-0faf-4b15-a3f7-e3a89f2c4897
+# ╠═655ab63e-49c4-46d9-ba8e-17d2765dc5d7
+# ╠═fc66e84b-1f09-40c0-8fbd-38546998a7cf
+# ╠═74ef1f91-634f-48f9-9ab2-d1a5081b5a43
 # ╠═5c39da72-f370-4212-8d82-1ba9870a152b
-# ╠═bdb8d1a4-57d6-4d92-bdab-df0d59478cf5
 # ╟─5549f662-6861-4615-9590-4eca1f0b81b6
 # ╟─54cfb2bc-fb52-49c6-912c-6ad42ca5a1b7
+# ╠═0b0e26d3-588c-44e7-9445-2faf8238d226
+# ╠═1d9ecf7b-df53-4418-a870-d67e45f21059
+# ╠═9f6243f6-c0e0-4e14-a332-964c80be4122

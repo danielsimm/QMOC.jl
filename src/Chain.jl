@@ -69,7 +69,7 @@ function entropy(state::QuantumClifford.MixedDestabilizer, trajectory::KekuleCha
     N = trajectory.nqubits
     EE = zeros(Int(N/3)+1)
     subsystems = collect(range(0, N, step=3))
-    for i in 2:Int(N/3)
+    for i in 2:Int(N/3)+1
         EE[i] = QuantumClifford.entanglement_entropy(state, 1:subsystems[i], algo)
     end
     return EE
@@ -78,6 +78,11 @@ end
 function subsystem_labels(trajectory::ChainTrajectory)
     N = trajectory.nqubits
     return round.(Int, collect(range(0, N, 65)))
+end
+
+function subsystem_labels(trajectory::KekuleChainTrajectory)
+    N = trajectory.nqubits
+    return collect(range(0, N, step=3))
 end
 
 function tmi(state::QuantumClifford.MixedDestabilizer, trajectory::ChainTrajectory; algo=Val(:rref)) # no geometry

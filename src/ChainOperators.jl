@@ -141,14 +141,14 @@ end
 function _chain_green(size::Int) #YY
     green = Vector{PauliOperator}(undef, Int(size/3))
     for i in 1:size
-        if mod1(i, 3) == 2
+        if mod1(i, 3) == 3
             Xarr = falses(size)
             Zarr = falses(size)
             Xarr[i] = true
             Xarr[mod1(i+1, size)] = true
             Zarr[i] = true
             Zarr[mod1(i+1, size)] = true
-            green[div(i,3)+1] = PauliOperator(0x00, Xarr, Zarr)
+            green[div(i,3)] = PauliOperator(0x00, Xarr, Zarr)
         end
     end
     return green
@@ -256,7 +256,7 @@ function get_operators(trajectory::KekuleChainTrajectory)
     green = _chain_green(trajectory.size)
     blue = _chain_blue(trajectory.size)
     matrix = Matrix{PauliOperator}(undef, 3, Int(trajectory.size/3))
-    for i in 1:trajectory.size
+    for i in 1:Int(trajectory.size/3)
         matrix[1, i] = red[i]
         matrix[2, i] = green[i]
         matrix[3, i] = blue[i]

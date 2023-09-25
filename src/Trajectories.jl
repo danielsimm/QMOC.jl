@@ -41,14 +41,14 @@ end
 function skippable(trajectory::Trajectory)
     filename2 = "data/measurements/$(hash(trajectory)).jld2"
     existing_measurements = 0
-    try
-        jldopen(filename2, "r") do file
-            file["average"]
-        end
-        return true
-        trajectory.verbosity == :debug ? (@info "[skippable] Trajectory $(trajectory.index) of $(trajectory.name) already done -> skip.") : nothing
-    catch
-        if isfile(filename2)
+    if isfile(filename2)
+        try
+            jldopen(filename2, "r") do file
+                file["average"]
+            end
+            return true
+            trajectory.verbosity == :debug ? (@info "[skippable] Trajectory $(trajectory.index) of $(trajectory.name) already done -> skip.") : nothing
+        catch
             for i in 1:trajectory.number_of_measurements
                 try 
                     jldopen(filename2, "r") do file
@@ -60,12 +60,12 @@ function skippable(trajectory::Trajectory)
                 end
             end
         end
-        if existing_measurements == trajectory.number_of_measurements
-            return true
-            trajectory.verbosity == :debug ? (@info "[skippable] Trajectory $(trajectory.index) of $(trajectory.name) already done -> skip.") : nothing
-        else
-            return false
-        end
+    end
+    if existing_measurements == trajectory.number_of_measurements
+        return true
+        trajectory.verbosity == :debug ? (@info "[skippable] Trajectory $(trajectory.index) of $(trajectory.name) already done -> skip.") : nothing
+    else
+        return false
     end
 end
 

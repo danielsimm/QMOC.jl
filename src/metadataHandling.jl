@@ -56,7 +56,23 @@ function commitMetadata(simulation::Simulation)
 
 end
 
+function convergeMeasurements
+    # converge measurements into one master file, update "skippable" function
+end
+
+function removeTrajectories(sim::Simulation)
+    for i in eachindex(sim.ensemble)
+        for j in eachindex(sim.ensemble[i])
+            trajectoryHash = hash(sim.ensemble[i][j])
+            if isfile("data/measurements/$(trajectoryHash).jld2")
+                rm("data/measurements/$(trajectoryHash).jld2")
+            end
+        end
+    end
+end
+
 function printMetadata()
+    global SimulationArchive = loadSimulationArchive()
     data = String[]
     numberOfSimulations = length(SimulationArchive)
     for simulation in SimulationArchive
@@ -69,7 +85,6 @@ function printMetadata()
     end
     data = permutedims(reshape(data, 6, numberOfSimulations))
     pretty_table(data; header=["Filename", "Simulation Type", "L", "# Trajectories", "# Measurements", "Metadata OK?"])
-    
 end
 
 function loadSimulationArchive()
