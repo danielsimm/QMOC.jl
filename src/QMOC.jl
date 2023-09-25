@@ -1,4 +1,4 @@
-module LatticeCircuits
+module QMOC
 
 using Dates
 using LinearAlgebra
@@ -33,10 +33,8 @@ if !isdir("data/metadata")
 end
 include("metadataHandling.jl")
 # checkMetadataIntegrity()
-global SimulationArchive = loadSimulationArchive()
-export SimulationArchive
 
-println("LatticeCircuits.jl loaded on worker $(myid()) with $(Threads.nthreads()) threads.")
+println("QMOC.jl loaded on worker $(myid()) with $(Threads.nthreads()) threads.")
 
 # from Simulators.jl
 export Simulation, simulation, simulate
@@ -52,5 +50,7 @@ export printMetadata, loadSimulation, missingTrajectories
 
 # from Parameters.jl
 export parameter_full, parameter_wedge, parameter_line
+
+printMetadata()
 
 end

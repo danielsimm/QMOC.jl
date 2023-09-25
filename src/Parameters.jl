@@ -138,5 +138,5 @@ end
 function parameter_full(resolution)
     wedge = parameter_wedge(resolution)
     full = symmetry_data_extension(wedge)
-    return full
+    return vec.(full)
 end

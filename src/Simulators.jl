@@ -75,7 +75,7 @@ function test_trajectory(type)
 end
 
 function _number_of_qubits(type::Symbol, size::Int) ::Int
-    if type in [:ChainPP, :ChainPQ]
+    if type in [:ChainPP, :ChainPQ, :ChainKekule]
         return size
     elseif type in [:Kekule, :Kitaev]
         return 2 * size^2
@@ -97,7 +97,7 @@ function simulate(simulation::Simulation)
         end
     end
 
-    pmap(run, trajectories)
+    pmap(run, trajectories; retry_delays = zeros(3))
 
     # commit metadata to file
     commitMetadata(simulation)

@@ -1,20 +1,29 @@
 function average(trajectory::Trajectory)
     filename = "data/measurements/$(hash(trajectory)).jld2"
     measurements = Vector{Measurement}(undef, trajectory.number_of_measurements)
-    jldopen(filename, "r") do file
-        for t in 1:trajectory.number_of_measurements
-            measurements[t] = file["$(t)"]
+    try
+        jldopen(filename, "r") do file
+            return file["average"]
         end
+    catch
+        jldopen(filename, "r") do file
+            for t in 1:trajectory.number_of_measurements
+                measurements[t] = file["$(t)"]
+            end
+        end
+        EE = zeros(length(subsystem_labels(trajectory)))
+        TMI = 0.0
+        for meas in measurements
+            EE .+= meas.entropy
+            TMI += meas.tmi
+        end
+        EE ./= trajectory.number_of_measurements
+        TMI /= trajectory.number_of_measurements
+        jldopen(filename, "w") do file
+            file["average"] = Measurement(EE, TMI)
+        end
+        return Measurement(EE, TMI)
     end
-    EE = zeros(length(subsystem_labels(trajectory)))
-    TMI = 0.0
-    for meas in measurements
-        EE .+= meas.entropy
-        TMI += meas.tmi
-    end
-    EE ./= trajectory.number_of_measurements
-    TMI /= trajectory.number_of_measurements
-    return Measurement(EE, TMI)
 end
 
 function average(traj_vec::Vector{Trajectory})
