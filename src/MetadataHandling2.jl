@@ -12,31 +12,6 @@ function checkMetadataIntegrity(simulation::Simulation)
     return isCorrupted
 end
 
-# function checkMetadataIntegrity()
-#     files = readdir("data/metadata")
-#     corruptedSimulations = []
-#     if !(isempty(files))
-#         for file in files
-#             jldopen("data/metadata/$(file)", "r") do file
-#                 if checkMetadataIntegrity(file["simulation"])
-#                     push!(corruptedSimulations, file["simulation"])
-#                 end
-#             end
-#         end
-#     end
-#     integrity = isempty(corruptedSimulations)
-#     if integrity
-#         @info "Metadata integrity: OK"
-#     else
-#         @warn "Metadata integrity: CORRUPTED"
-#         @info "Corrupted simulations:"
-#         for simulation in corruptedSimulations
-#             @info "  $(simulation.name)"
-#         end
-#         @info "Check for missing trajectories with missingTrajectories(simulation) or missingTrajectories(simulation.name)."
-#     end
-# end
-
 function commitMetadata(simulation::Simulation)
     if !isdir("data")
         mkdir("data")
