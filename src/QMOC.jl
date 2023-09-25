@@ -31,7 +31,7 @@ end
 if !isdir("data/metadata")
     mkdir("data/metadata")
 end
-include("metadataHandling.jl")
+include("MetadataHandling.jl")
 # checkMetadataIntegrity()
 
 println("QMOC.jl loaded on worker $(myid()) with $(Threads.nthreads()) threads.")
