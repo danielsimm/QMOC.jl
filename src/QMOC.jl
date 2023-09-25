@@ -1,4 +1,4 @@
-module LatticeCircuits
+module QMOC
 
 using Dates
 using LinearAlgebra
@@ -34,7 +34,7 @@ end
 include("metadataHandling.jl")
 # checkMetadataIntegrity()
 
-println("LatticeCircuits.jl loaded on worker $(myid()) with $(Threads.nthreads()) threads.")
+println("QMOC.jl loaded on worker $(myid()) with $(Threads.nthreads()) threads.")
 
 # from Simulators.jl
 export Simulation, simulation, simulate
