@@ -31,8 +31,26 @@ function commitMetadata(simulation::Simulation)
 
 end
 
-function convergeMeasurements
-    # converge measurements into one master file, update "skippable" function
+function convergeMeasurements(sim::Simulation)
+    measurements = []
+    hashes = []
+    for i in eachindex(sim.ensemble)
+        for j in eachindex(sim.ensemble[i])
+            trajectoryHash = hash(sim.ensemble[i][j])
+            if isfile("data/measurements/$(trajectoryHash).jld2")
+                push!(hashes, trajectoryHash)
+                jldopen("data/measurements/$(trajectoryHash).jld2", "r") do file
+                    push!(measurements, file["average"])
+                end
+            end
+        end
+    end
+    jldopen("data/archive.jld2", "a+") do file
+        for i in eachindex(hashes)
+            file["$(hashes[i])"] = measurements[i]
+        end
+    end
+
 end
 
 function removeTrajectories(sim::Simulation)

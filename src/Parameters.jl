@@ -134,7 +134,11 @@ function symmetry_data_extension(parameter_set)
     return unique(parameter_output)
 end
 
+"""
+    parameter_full(resolution)
 
+    Returns a list of rational parameter sets (px, py, pz) filling the whole parameter space.
+"""
 function parameter_full(resolution)
     wedge = parameter_wedge(resolution)
     full = symmetry_data_extension(wedge)
