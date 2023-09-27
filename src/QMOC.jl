@@ -41,7 +41,7 @@ export run, Trajectory, Measurement
 export evaluate
 
 # from metadataHandling.jl
-export printMetadata, loadSimulation, missingTrajectories
+export metadata, loadSimulation, missingTrajectories
 
 # from Parameters.jl
 export parameter_full, parameter_wedge, parameter_line
