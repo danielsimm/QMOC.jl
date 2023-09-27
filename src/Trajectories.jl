@@ -39,11 +39,11 @@ function read_checkpoint(trajectory::Trajectory)
 end
 
 function skippable(trajectory::Trajectory)
-    filename2 = "data/measurements/$(hash(trajectory)).jld2"
+    filename = "data/measurements/$(hash(trajectory)).jld2"
     existing_measurements = 0
-    if isfile(filename2)
+    if isfile(filename)
         try
-            jldopen(filename2, "r") do file
+            jldopen(filename, "r") do file
                 file["average"]
             end
             return true
@@ -51,7 +51,7 @@ function skippable(trajectory::Trajectory)
         catch
             for i in 1:trajectory.number_of_measurements
                 try 
-                    jldopen(filename2, "r") do file
+                    jldopen(filename, "r") do file
                         file["$(i)"]
                     end
                     existing_measurements += 1

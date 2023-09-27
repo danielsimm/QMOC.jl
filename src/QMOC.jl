@@ -10,8 +10,6 @@ using PrettyTables
 import Distributed: @distributed, @everywhere, fetch, myid, pmap, remotecall
 import JLD2: jldopen, load
 
-const PLOTTING = false ::Bool
-
 
 include("Trajectories.jl")
 include("Geometry.jl")
@@ -21,9 +19,6 @@ include("Chain.jl")
 include("Parameters.jl")
 include("Simulators.jl")
 include("Analysis.jl")
-if PLOTTING
-    include("Plotting.jl")
-end
 
 if !isdir("data")
     mkdir("data")
@@ -51,6 +46,6 @@ export printMetadata, loadSimulation, missingTrajectories
 # from Parameters.jl
 export parameter_full, parameter_wedge, parameter_line
 
-printMetadata()
+metadata()
 
 end
