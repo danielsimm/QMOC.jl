@@ -38,37 +38,6 @@ function read_checkpoint(trajectory::Trajectory)
     return state, time
 end
 
-function skippable(trajectory::Trajectory)
-    filename = "data/measurements/$(hash(trajectory)).jld2"
-    existing_measurements = 0
-    if isfile(filename)
-        try
-            jldopen(filename, "r") do file
-                file["average"]
-            end
-            return true
-            trajectory.verbosity == :debug ? (@info "[skippable] Trajectory $(trajectory.index) of $(trajectory.name) already done -> skip.") : nothing
-        catch
-            for i in 1:trajectory.number_of_measurements
-                try 
-                    jldopen(filename, "r") do file
-                        file["$(i)"]
-                    end
-                    existing_measurements += 1
-                catch
-                    nothing
-                end
-            end
-        end
-    end
-    if existing_measurements == trajectory.number_of_measurements
-        return true
-        trajectory.verbosity == :debug ? (@info "[skippable] Trajectory $(trajectory.index) of $(trajectory.name) already done -> skip.") : nothing
-    else
-        return false
-    end
-end
-
 function hot_start(trajectory::Trajectory)
     filename = "data/checkpoints/$(hash(trajectory)).jld2" 
     filename2 = "data/measurements/$(hash(trajectory)).jld2"
@@ -182,7 +151,7 @@ function run(trajectory::Trajectory)
     if !isdir("data/checkpoints")
         mkdir("data/checkpoints")
     end
-    if skippable(trajectory)
+    if finalizedTrajectory(trajectory)
         return nothing
     end
     trajectory.verbosity == :debug ? (@info "[run] Starting trajectory $(trajectory.index) of $(trajectory.name).") : nothing

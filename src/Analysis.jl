@@ -1,4 +1,14 @@
 function average(trajectory::Trajectory)
+    if isfile("data/archive.jld2")
+        jldopen("data/archive.jld2", "r") do file
+            try
+                file["$(hash(trajectory))"]
+                return file["$(hash(trajectory))"]
+            catch
+                nothing
+            end
+        end
+    end
     filename = "data/measurements/$(hash(trajectory)).jld2"
     measurements = Vector{Measurement}(undef, trajectory.number_of_measurements)
     try
