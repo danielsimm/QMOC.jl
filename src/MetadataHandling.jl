@@ -4,6 +4,10 @@
     Checks if a trajectory is complete, i.e. if all measurements are present. Automatically averages if all measurements are present but no average is found.
 """
 function boolComplete(traj::Trajectory) :: Bool
+    if boolArchived(traj)
+        traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Trajectory $(hash(traj)) already archived.") : nothing
+        return true
+    end
     if isfile("data/measurements/$(hash(traj)).jld2")
         jldopen("data/measurements/$(hash(traj)).jld2", "r") do file
             try # check if average is there
@@ -30,6 +34,23 @@ function boolComplete(traj::Trajectory) :: Bool
         return false
     end
 end
+
+"""
+    boolComplete(sim::Simulation) :: Bool
+
+    Checks if a simulation is complete, i.e. if all linked trajectories are complete.
+"""
+function boolComplete(sim::Simulation) :: Bool
+    for i in eachindex(sim.ensemble)
+        for j in eachindex(sim.ensemble[i])
+            if !(boolComplete(sim.ensemble[i][j]))
+                return false
+            end
+        end
+    end
+    return true
+end
+
 
 """
     boolArchived(traj::Trajectory) :: Bool
@@ -72,11 +93,11 @@ function boolArchived(sim::Simulation) :: Bool
 end
 
 """
-    finalize(traj::Trajectory)
+    archive(traj::Trajectory) :: Nothing
 
-    Finalizes a trajectory by first checking if it is complete and then archiving it.
+    Archives a trajectory by first checking if it is complete and then archiving it.
 """
-function finalize(traj::Trajectory) 
+function archive(traj::Trajectory) :: Nothing
    if boolArchived(traj)
         traj.verbosity == :debug ? (@info "[finalize] Trajectory $(hash(traj)) already archived.") : nothing
         return nothing
@@ -87,18 +108,16 @@ function finalize(traj::Trajectory)
                 jldopen("data/archive.jld2", "a+") do file
                     file["$(hash(traj))"] = average
                 end
-                traj.verbosity == :debug ? (@info "[finalize] Trajectory $(hash(traj)) archived.") : nothing
+                traj.verbosity == :debug ? (@info "[archive] Trajectory $(hash(traj)) archived.") : nothing
             catch
-                traj.verbosity == :debug ? (@info "[finalize] Trajectory $(hash(traj)) not complete.") : nothing
+                @warn "[archive] Unknown error trying to finalize trajectory $(hash(traj))."
             end
         end
     else
-         @warn "[finalize] Trajectory $(hash(traj)) could not be finalized."
+         @warn "[archive] Tried to finalize trajectory $(hash(traj)), which has not been completed!."
     end
     return nothing
 end
-
-
 
 """
     countTrajectories(sim::Simulation) :: Int
@@ -115,57 +134,42 @@ function countTrajectories(sim::Simulation) :: Int
     return number_of_trajectories
 end
 
-function archiveTrajectories(sim::Simulation)
+"""
+    archive(sim::Simulation) :: Nothing
+
+    Archives all trajectories in a simulation.
+"""
+function archive(sim::Simulation) :: Nothing
     if boolArchived(sim)
         @info "Trajectories already archived."
         return nothing
     end
     
-    hashes, measurements = collectTrajectories(sim)
-
-    jldopen("data/archive.jld2", "a+") do file
-        for i in eachindex(hashes)
-            file["$(hashes[i])"] = measurements[i]
+    for i in eachindex(sim.ensemble)
+        for j in eachindex(sim.ensemble[i])
+            archive(sim.ensemble[i][j])
         end
     end
 
-    println("Archived $(length(hashes)) trajectories. Do you want to delete the original files? (y/n)")
-    answer = readline()
-    if answer == "y"
-        removeTrajectories(sim)
-    end
-end
-
-function commitMetadata(simulation::Simulation)
-    if !isdir("data")
-        mkdir("data")
-    end
-    if !isdir("data/metadata")
-        mkdir("data/metadata")
-    end
-
-    try
-        jldopen("data/metadata/$(simulation.name).jld2", "a+") do file
-            file["simulation"] = simulation
+    if boolArchived(sim)
+        println("All trajectories archived.")
+        println("Do you want to delete the original files? (y/n)")
+        answer = readline()
+        if answer == "y"
+            removeTrajectories(sim)
         end
-        push!(SimulationArchive, simulation)
-    catch
-        @info "Metadata file for simulation $(simulation.name) already exists."
+    else
+        println("Something went wrong. Not all trajectories were archived.")
     end
-
+    return nothing
 end
 
+"""
+    removeTrajectories(sim::Simulation) :: Nothing
 
-
-
-
-
-
-archiveTrajectories(string::String) = archiveTrajectories(loadSimulation(string))
-archiveTrajectories() = archiveTrajectories.([sim for sim in loadSimulationArchive()])
-
-
-function removeTrajectories(sim::Simulation)
+    Removes all trajectories in a simulation from the filesystem.
+"""
+function removeTrajectories(sim::Simulation) :: Nothing
     hashes = []
     for i in eachindex(sim.ensemble)
         for j in eachindex(sim.ensemble[i])
@@ -183,82 +187,262 @@ function removeTrajectories(sim::Simulation)
     else
         println("Aborting.")
     end
-end
-
-
-function loadSimulationArchive()
-    files = readdir("data/metadata")
-    SimulationArchive = []
-    for file in files
-        jldopen("data/metadata/$(file)", "r") do file
-            push!(SimulationArchive, file["simulation"])
-        end
-    end
-    @info "Metadata loaded."
-    return SimulationArchive
-end
-
-
-"""
-    metadata()
-
-    Prints a table with all metadata after loading into global memory.
-"""
-function metadata()
-    global SimulationArchive = loadSimulationArchive()
-    data = String[]
-    numberOfSimulations = length(SimulationArchive)
-    for simulation in SimulationArchive
-        push!(data,"$(simulation.name)")
-        push!(data,"$(simulation.type)")
-        push!(data,"$(simulation.size)")
-        push!(data,"$(simulation.num_trajectrories)")
-        push!(data,"$(simulation.number_of_measurements)")
-        push!(data,"$(checkMetadataIntegrity(simulation))")
-    end
-    data = permutedims(reshape(data, 6, numberOfSimulations))
-    pretty_table(data; header=["Filename", "Simulation Type", "L", "# Trajectories", "# Measurements", "Metadata OK?"])
-end
-
-
-
-function loadSimulation(string)
-    for simulation in SimulationArchive
-        if simulation.name == string
-            return simulation
-        end
-    end
-    @info "Simulation $(string) does not exist, loading metadata..."
-    sleep(1)
-    metadata()
     return nothing
 end
 
-function orphanedMeasurements()
-    alltrajectories = readdir("data/measurements")
-    indexedtrajectories = []
-    for sim in loadSimulationArchive()
-        for i in eachindex(sim.ensemble)
-            for j in eachindex(sim.ensemble[i])
-                push!(indexedtrajectories, hash(sim.ensemble[i][j]))
+"""
+    writeMetadata(sim::Simulation) :: Nothing
+
+    Writes the metadata of a simulation to the filesystem.
+"""
+function writeMetadata(sim::Simulation)
+    if !isdir("data")
+        mkdir("data")
+    end
+    if !isdir("data/metadata")
+        mkdir("data/metadata")
+    end
+
+    try
+        jldopen("data/metadata/$(simulation.name).jld2", "a+") do file
+            file["simulation"] = simulation
+        end
+        push!(SimulationArchive, simulation)
+    catch
+        @info "Metadata file for simulation $(simulation.name) already exists."
+    end
+end
+
+"""
+    loadMetadata()
+
+    Loads all metadata from the filesystem and returns a vector of simulations.
+"""
+function loadMetadata()
+    files = readdir("data/metadata")
+    simulations = Vector{Simulation}(undef, length(files))
+    for i in eachindex(files)
+        file = files[i]
+        jldopen("data/metadata/$(file)", "r") do file
+           simulations[i] = file["simulation"]
+        end
+    end
+    return simulations
+end
+
+"""
+    loadMetadata(name::String)
+
+    Loads the metadata of a simulation from the filesystem and returns it. If the simulation name cannot be matched, it loads all metadata.
+"""
+function loadMetadata(name::String)
+   sims = loadMetadata()
+    for sim in sims
+         if sim.name == name
+              return sim
+         end
+    end
+    @info "Simulation $(name) does not exist, loading all metadata..."
+    sleep(1)
+    return loadMetadata()
+end
+
+function printMetadata(sims::Vector{Simulation}) :: Nothing #custom printing function for simulations vector
+    data = String[]
+    for sim in sims
+        push!(data,"$(sim.name)")
+        push!(data,"$(sim.type)")
+        push!(data,"$(sim.size)")
+        push!(data,"$(sim.num_trajectrories)")
+        push!(data,"$(sim.number_of_measurements)")
+        push!(data,"$(boolComplete(sim))")
+        push!(data,"$(boolArchived(sim))")
+    end
+    data = permutedims(reshape(data, 7, length(sims)))
+    pretty_table(data; header=["Filename", "Simulation Type", "L", "# Trajectories", "# Measurements", "Complete?", "Archived?"])
+end
+
+Base.show(io::IO, sims::Vector{Simulation}) = printMetadata(sims) #extend show function with custom pretty printing
+
+archiveTrajectories(string::String) = archiveTrajectories(loadMetadata(string))
+
+archiveTrajectories() = archiveTrajectories.([sim for sim in loadMetadata()])
+
+"""
+    allTrajectories()
+
+    Returns a vector of all trajectory hashes in the filesystem.
+"""
+function allTrajectories() 
+    hashes = []
+    
+    # archived trajectories
+    if isfile("data/archive.jld2")
+        jldopen("data/archive.jld2", "r") do file
+            for key in keys(file)
+                push!(hashes, key)
             end
         end
     end
-    for indexedtraj in indexedtrajectories
-        name = "$(indexedtraj).jld2"
-        if name in alltrajectories
-            deleteat!(alltrajectories, findfirst(x->x==name, alltrajectories))
-        end
+
+    # unarchived trajectories
+    files = readdir("data/measurements")
+    for file in files
+        push!(hashes, split(file, ".")[1])
     end
-    return alltrajectories
+
+    return hashes
 end
 
+"""
+    orphanedMeasurements()
+
+    Returns a vector of all trajectory hashes in the filesystem that are not in the metadata.
+"""
+function orphanedTrajectories()
+    alltrajectories = allTrajectories()
+    adoptedtrajectories = adoptedTrajectories()
+    return setdiff(alltrajectories, adoptedtrajectories)
+end
+
+"""
+    adoptedTrajectories()
+
+    Returns a vector of all trajectory hashes in the filesystem that are in the metadata.
+"""
+function adoptedTrajectories()
+    adoptedtrajectories = []
+    sims = loadMetadata()
+    for sim in sims
+        for i in eachindex(sim.ensemble)
+            for j in eachindex(sim.ensemble[i])
+                if isfile("data/measurements/$(hash(sim.ensemble[i][j])).jld2")
+                    push!(adoptedtrajectories, hash(sim.ensemble[i][j]))
+                end
+            end
+        end
+    end
+    return adoptedtrajectories
+end
+
+"""
+    backup()
+
+    Backs up all metadata and measurements (including the archive) to a folder called "backup" in the data folder.
+"""
+function backup()
+    if !isdir("data/backup")
+        mkdir("data/backup")
+    end
+    if !isdir("data/backup/measurements")
+        mkdir("data/backup/measurements")
+    end
+    if !isdir("data/backup/metadata")
+        mkdir("data/backup/metadata")
+    end
+    try
+        if isfile("data/archive.jld2")
+            cp("data/archive.jld2", "data/backup/archive.jld2")
+        end
+        # read measurement files
+        files = readdir("data/measurements")
+        if !(isempty(files))
+            for file in files
+                cp("data/measurements/$(file)", "data/backup/measurements/$(file)")
+            end
+        end
+        # read metadata files
+        files = readdir("data/metadata")
+        if !(isempty(files))
+            for file in files
+                cp("data/metadata/$(file)", "data/backup/metadata/$(file)")
+            end
+        end
+        @info "Backup successful. Please rename the backup folder to avoid overwriting."
+        return true
+    catch
+        @warn "Backup failed."
+        return false
+    end
+end
+
+"""
+    cleanup()
+
+    Cleans up the filesystem by archiving all trajectories in the metadata and deleting all orphaned trajectories.
+"""
+function cleanup()
+    println("Perform backup before cleanup? (y/n)")
+    answer = readline()
+    backupcomplete = false
+    if answer == "y"
+        backupcomplete = backup()
+    end
+    if !backupcomplete
+        println("Backup failed. Continue anyway? (y/n)")
+        answer = readline()
+        if answer != "y"
+            println("Aborting.")
+            return nothing
+        end
+    end
+
+    # readout all adopted trajectories from archive
+    all = allTrajectories()
+    adopted = adoptedTrajectories()
+    orphaned = setdiff(all, adopted)
+    if isempty(orphaned)
+        println("Metadata matches trajectories. Nothing to clean up.")
+        return nothing
+    end
+    adopted_archive = []
+    if isfile("data/archive.jld2")
+        jldopen("data/archive.jld2", "r") do file
+            for key in keys(file)
+                push!(adopted_archive, file[key])
+            end
+        end
+    end
+    # write new archive
+    jldopen("data/archive.jld2", "w") do file
+        for i in eachindex(adopted)
+            file["$(adopted[i])"] = adopted_archive[i]
+        end
+    end
+
+    # archive free trajectories
+    sims = loadMetadata()
+    for sim in sims
+        for i in eachindex(sim.ensemble)
+            for j in eachindex(sim.ensemble[i])
+                if !(hash(sim.ensemble[i][j]) in adopted)
+                    archive(sim.ensemble[i][j])
+                end
+            end
+        end
+    end
+
+    # delete remaining files
+    for hash in orphaned
+        if isfile("data/measurements/$(hash).jld2")
+            rm("data/measurements/$(hash).jld2")
+        end
+    end
+    println("Cleanup complete.")
+    return nothing
+end
+
+
+"""
+    missingTrajectories(simulation::Simulation)
+
+    Returns a vector of all trajectories in a simulation that are not complete.
+"""
 function missingTrajectories(simulation::Simulation)
     missing_traj = []
     for i in eachindex(simulation.ensemble)
         for j in eachindex(simulation.ensemble[i])
-            trajectoryHash = hash(simulation.ensemble[i][j])
-            if !isfile("data/measurements/$(trajectoryHash).jld2")
+            if !boolComplete(simulation.ensemble[i][j])
                 push!(missing_traj, simulation.ensemble[i][j])
             end
         end
@@ -266,5 +450,5 @@ function missingTrajectories(simulation::Simulation)
     return missing_traj
 end
 
-missingTrajectories(string::String) = missingTrajectories(loadSimulation(string))
+missingTrajectories(string::String) = missingTrajectories(loadMetadata(string))
 
