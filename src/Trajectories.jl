@@ -139,7 +139,37 @@ function observe(state::QuantumClifford.AbstractStabilizer, trajectory::Trajecto
     return state, time
 end
 
+"""
+    writeAverage(traj::Trajectory) :: nothing
 
+    Overwrites a trajectory file containing a measurement series with its average.
+"""
+function writeAverage(traj::Trajectory) :: nothing
+    filename = "data/measurements/$(hash(trajectory)).jld2"
+    measurements = Vector{Measurement}(undef, trajectory.number_of_measurements)
+    try
+        jldopen(filename, "r") do file
+            file["average"]
+        end
+    catch
+        jldopen(filename, "r") do file
+            for t in 1:trajectory.number_of_measurements
+                measurements[t] = file["$(t)"]
+            end
+        end
+        EE = zeros(length(subsystem_labels(trajectory)))
+        TMI = 0.0
+        for meas in measurements
+            EE .+= meas.entropy
+            TMI += meas.tmi
+        end
+        EE ./= trajectory.number_of_measurements
+        TMI /= trajectory.number_of_measurements
+        jldopen(filename, "w") do file
+            file["average"] = Measurement(EE, TMI)
+        end
+    end
+end
 
 function run(trajectory::Trajectory)
     if !isdir("data")

@@ -1,38 +1,18 @@
-function average(trajectory::Trajectory)
-    if isfile("data/archive.jld2")
+
+"""
+    readTrajectory(traj::Trajectory) :: Measurement
+
+    Reads a trajectory from the archive or from the filesystem. Assumes that the trajectory is complete.
+"""
+function readTrajectory(traj::Trajectory) :: Measurement
+    if boolArchived(traj)
         jldopen("data/archive.jld2", "r") do file
-            try
-                file["$(hash(trajectory))"]
-                return file["$(hash(trajectory))"]
-            catch
-                nothing
-            end
+            return file["$(hash(traj))"]
         end
-    end
-    filename = "data/measurements/$(hash(trajectory)).jld2"
-    measurements = Vector{Measurement}(undef, trajectory.number_of_measurements)
-    try
-        jldopen(filename, "r") do file
+    else
+        jldopen("data/measurements/$(hash(traj)).jld2", "r") do file
             return file["average"]
         end
-    catch
-        jldopen(filename, "r") do file
-            for t in 1:trajectory.number_of_measurements
-                measurements[t] = file["$(t)"]
-            end
-        end
-        EE = zeros(length(subsystem_labels(trajectory)))
-        TMI = 0.0
-        for meas in measurements
-            EE .+= meas.entropy
-            TMI += meas.tmi
-        end
-        EE ./= trajectory.number_of_measurements
-        TMI /= trajectory.number_of_measurements
-        jldopen(filename, "w") do file
-            file["average"] = Measurement(EE, TMI)
-        end
-        return Measurement(EE, TMI)
     end
 end
 

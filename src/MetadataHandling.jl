@@ -21,7 +21,7 @@ function boolComplete(traj::Trajectory) :: Bool
                     end
                 end
                 traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Found all measurements for trajectory $(hash(traj)). Average missing for unknown reasons.") : nothing
-                average(traj)
+                writeAverage(traj)
                 return true
             end
         end
@@ -52,6 +52,26 @@ function boolArchived(traj::Trajectory) :: Bool
 end
 
 """
+    boolArchived(sim::Simulation) :: Bool
+
+    Checks if a simulation is archived, i.e. if all trajectories are archived.
+"""
+function boolArchived(sim::Simulation) :: Bool
+    if isfile("data/archive.jld2")
+        for i in eachindex(sim.ensemble)
+            for j in eachindex(sim.ensemble[i])
+               if !(boolArchived(sim.ensemble[i][j]))
+                    return false
+                end
+            end
+        end
+    else
+        return false
+    end
+    return true
+end
+
+"""
     finalize(traj::Trajectory)
 
     Finalizes a trajectory by first checking if it is complete and then archiving it.
@@ -78,75 +98,21 @@ function finalize(traj::Trajectory)
     return nothing
 end
 
+
+
 """
-    readTrajectory(traj::Trajectory) :: Measurement
+    countTrajectories(sim::Simulation) :: Int
 
-    Reads a trajectory from the archive or from the filesystem. Assumes that the trajectory is complete.
+    Counts the number of trajectories in a simulation.
 """
-function readTrajectory(traj::Trajectory) :: Measurement
-    if boolArchived(traj)
-        jldopen("data/archive.jld2", "r") do file
-            return file["$(hash(traj))"]
-        end
-    else
-        jldopen("data/measurements/$(hash(traj)).jld2", "r") do file
-            return file["average"]
-        end
-    end
-end
-
-
-function commitMetadata(simulation::Simulation)
-    if !isdir("data")
-        mkdir("data")
-    end
-    if !isdir("data/metadata")
-        mkdir("data/metadata")
-    end
-
-    try
-        jldopen("data/metadata/$(simulation.name).jld2", "a+") do file
-            file["simulation"] = simulation
-        end
-        push!(SimulationArchive, simulation)
-    catch
-        @info "Metadata file for simulation $(simulation.name) already exists."
-    end
-
-end
-
-function boolArchived(sim::Simulation) :: Bool
-    if isfile("data/archive.jld2")
-        for i in eachindex(sim.ensemble)
-            for j in eachindex(sim.ensemble[i])
-               if !boolArchived(sim.ensemble[i][j])
-                    return false
-                end
-            end
-        end
-    else
-        return false
-    end
-    return true
-end
-
-function collectTrajectories(sim::Simulation)
-    measurements = []
-    hashes = []
+function countTrajectories(sim::Simulation) :: Int
+    number_of_trajectories = 0
     for i in eachindex(sim.ensemble)
         for j in eachindex(sim.ensemble[i])
-            trajectoryHash = hash(sim.ensemble[i][j])
-            if isfile("data/measurements/$(trajectoryHash).jld2")
-                push!(hashes, trajectoryHash)
-                jldopen("data/measurements/$(trajectoryHash).jld2", "r") do file
-                    push!(measurements, file["average"])
-                end
-            else
-                @warn "Trajectory $(trajectoryHash) does not exist."
-            end
+            number_of_trajectories += 1
         end
     end
-    return hashes, measurements
+    return number_of_trajectories
 end
 
 function archiveTrajectories(sim::Simulation)
@@ -169,6 +135,31 @@ function archiveTrajectories(sim::Simulation)
         removeTrajectories(sim)
     end
 end
+
+function commitMetadata(simulation::Simulation)
+    if !isdir("data")
+        mkdir("data")
+    end
+    if !isdir("data/metadata")
+        mkdir("data/metadata")
+    end
+
+    try
+        jldopen("data/metadata/$(simulation.name).jld2", "a+") do file
+            file["simulation"] = simulation
+        end
+        push!(SimulationArchive, simulation)
+    catch
+        @info "Metadata file for simulation $(simulation.name) already exists."
+    end
+
+end
+
+
+
+
+
+
 
 archiveTrajectories(string::String) = archiveTrajectories(loadSimulation(string))
 archiveTrajectories() = archiveTrajectories.([sim for sim in loadSimulationArchive()])
