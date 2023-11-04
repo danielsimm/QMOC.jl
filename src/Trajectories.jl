@@ -145,26 +145,26 @@ end
     Overwrites a trajectory file containing a measurement series with its average.
 """
 function writeAverage(traj::Trajectory) :: nothing
-    filename = "data/measurements/$(hash(trajectory)).jld2"
-    measurements = Vector{Measurement}(undef, trajectory.number_of_measurements)
+    filename = "data/measurements/$(hash(traj)).jld2"
+    measurements = Vector{Measurement}(undef, traj.number_of_measurements)
     try
         jldopen(filename, "r") do file
             file["average"]
         end
     catch
         jldopen(filename, "r") do file
-            for t in 1:trajectory.number_of_measurements
+            for t in 1:traj.number_of_measurements
                 measurements[t] = file["$(t)"]
             end
         end
-        EE = zeros(length(subsystem_labels(trajectory)))
+        EE = zeros(length(subsystem_labels(traj)))
         TMI = 0.0
         for meas in measurements
             EE .+= meas.entropy
             TMI += meas.tmi
         end
-        EE ./= trajectory.number_of_measurements
-        TMI /= trajectory.number_of_measurements
+        EE ./= traj.number_of_measurements
+        TMI /= traj.number_of_measurements
         jldopen(filename, "w") do file
             file["average"] = Measurement(EE, TMI)
         end
@@ -181,7 +181,7 @@ function run(trajectory::Trajectory)
     if !isdir("data/checkpoints")
         mkdir("data/checkpoints")
     end
-    if finalizedTrajectory(trajectory)
+    if boolComplete(trajectory)
         return nothing
     end
     trajectory.verbosity == :debug ? (@info "[run] Starting trajectory $(trajectory.index) of $(trajectory.name).") : nothing
@@ -197,6 +197,9 @@ function run(trajectory::Trajectory)
     
     tock = now()
 
+    if !(boolComplete(trajectory)) #implicitly averages trajectory if complete
+        @warn "Trajectory $(trajectory.index) of $(trajectory.name) failed!"
+    end
     trajectory.verbosity == :info ? (@info "[run] Trajectory time: $(Dates.format(convert(DateTime, tock-tick), "HH:MM:SS")).") : nothing
     trajectory.verbosity == :debug ? (@info "[run] Trajectory time: $(Dates.format(convert(DateTime, tock-tick), "HH:MM:SS")), trajectory $(trajectory.index) of $(trajectory.name).") : nothing
 end
