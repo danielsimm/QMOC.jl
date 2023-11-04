@@ -41,7 +41,7 @@ export run, Trajectory, Measurement
 export evaluate
 
 # from metadataHandling.jl
-export backup, cleanup, missingTrajectories, orphanedTrajectories, archive, loadMetadata, saveMetadata
+export backup, cleanup, missingTrajectories, orphanedTrajectories, archive, loadMetadata, saveMetadata, metadata
 
 # from Parameters.jl
 export parameter_full, parameter_wedge, parameter_line

@@ -1,4 +1,21 @@
 """
+    archivedTrajectories()
+
+    Returns a vector of all trajectory hashes in the archive.
+"""
+function archivedTrajectories()
+    archivedtrajectories = []
+    if isfile("data/archive.jld2")
+        jldopen("data/archive.jld2", "r") do file
+            for key in keys(file)
+                push!(archivedtrajectories, key)
+            end
+        end
+    end
+    return parse.(UInt, archivedtrajectories)
+end
+
+"""
     boolComplete(traj::Trajectory) :: Bool
 
     Checks if a trajectory is complete, i.e. if all measurements are present. Automatically averages if all measurements are present but no average is found.
@@ -41,10 +58,13 @@ end
     Checks if a simulation is complete, i.e. if all linked trajectories are complete.
 """
 function boolComplete(sim::Simulation) :: Bool
+    archived = archivedTrajectories()
     for i in eachindex(sim.ensemble)
         for j in eachindex(sim.ensemble[i])
-            if !(boolComplete(sim.ensemble[i][j]))
-                return false
+            if !(hash(sim.ensemble[i][j]) in archived)
+                if !boolComplete(sim.ensemble[i][j])
+                    return false
+                end
             end
         end
     end
@@ -78,18 +98,15 @@ end
     Checks if a simulation is archived, i.e. if all trajectories are archived.
 """
 function boolArchived(sim::Simulation) :: Bool
-    if isfile("data/archive.jld2")
-        for i in eachindex(sim.ensemble)
-            for j in eachindex(sim.ensemble[i])
-               if !(boolArchived(sim.ensemble[i][j]))
-                    return false
+   archived = archivedTrajectories()
+    for i in eachindex(sim.ensemble)
+          for j in eachindex(sim.ensemble[i])
+                if !(hash(sim.ensemble[i][j]) in archived)
+                 return false
                 end
-            end
-        end
-    else
-        return false
-    end
-    return true
+          end
+     end
+     return true
 end
 
 """
@@ -247,19 +264,51 @@ function loadMetadata(name::String)
     return loadMetadata()
 end
 
+function metadata()
+    sims = loadMetadata()
+    println("Found $(length(sims)) simulations.")
+    printMetadata(sims)
+
+    num_trajectories = length(allTrajectories())
+    println("$(num_trajectories) trajectories.")
+    num_adopted = length(adoptedTrajectories())
+    num_archived = length(archivedTrajectories())
+    if num_adopted == num_trajectories
+        println("All trajectories adopted.")
+    else
+        println("$(num_adopted) adopted trajectories.")
+    end
+    if num_archived == num_trajectories
+        println("All trajectories archived.")
+    else
+        println("$(num_archived) archived trajectories.")
+    end
+
+    num_missing = length(missingTrajectories(sims))
+    if  num_missing > 0
+        println("$(num_missing) missing trajectories.")
+    end
+
+    num_orphaned = length(orphanedTrajectories())
+    if num_orphaned > 0
+        println("$(num_orphaned) orphaned trajectories.")
+    end
+end
+    
+    
+
 function printMetadata(sims::Vector{Simulation}) :: Nothing #custom printing function for simulations vector
     data = String[]
     for sim in sims
         push!(data,"$(sim.name)")
         push!(data,"$(sim.type)")
         push!(data,"$(sim.size)")
-        push!(data,"$(sim.num_trajectrories)")
-        push!(data,"$(sim.number_of_measurements)")
+        push!(data,"$(length(sim.parameter_set)) × $(sim.num_trajectrories) × $(sim.number_of_measurements)")
         push!(data,"$(boolComplete(sim))")
         push!(data,"$(boolArchived(sim))")
     end
-    data = permutedims(reshape(data, 7, length(sims)))
-    pretty_table(data; header=["Filename", "Simulation Type", "L", "# Trajectories", "# Measurements", "Complete?", "Archived?"])
+    data = permutedims(reshape(data, 6, length(sims)))
+    pretty_table(data; header=["Filename", "Type", "L", "Params. × Traj. × Meas.", "Complete?", "Archived?"])
 end
 
 Base.show(io::IO, sims::Vector{Simulation}) = printMetadata(sims) #extend show function with custom pretty printing
@@ -291,7 +340,7 @@ function allTrajectories()
         push!(hashes, split(file, ".")[1])
     end
 
-    return hashes
+    return parse.(UInt, hashes)
 end
 
 """
@@ -312,11 +361,14 @@ end
 """
 function adoptedTrajectories()
     adoptedtrajectories = []
+    archivedtrajectories = archivedTrajectories()
     sims = loadMetadata()
     for sim in sims
         for i in eachindex(sim.ensemble)
             for j in eachindex(sim.ensemble[i])
-                if isfile("data/measurements/$(hash(sim.ensemble[i][j])).jld2")
+                if hash(sim.ensemble[i][j]) in archivedtrajectories
+                    push!(adoptedtrajectories, hash(sim.ensemble[i][j]))
+                elseif isfile("data/measurements/$(hash(sim.ensemble[i][j])).jld2")
                     push!(adoptedtrajectories, hash(sim.ensemble[i][j]))
                 end
             end
@@ -440,14 +492,26 @@ end
 """
 function missingTrajectories(simulation::Simulation)
     missing_traj = []
-    for i in eachindex(simulation.ensemble)
-        for j in eachindex(simulation.ensemble[i])
-            if !boolComplete(simulation.ensemble[i][j])
-                push!(missing_traj, simulation.ensemble[i][j])
+    if !boolArchived(simulation)
+        if !boolComplete(simulation)
+            for i in eachindex(simulation.ensemble)
+                for j in eachindex(simulation.ensemble[i])
+                    if !boolComplete(simulation.ensemble[i][j])
+                        push!(missing_traj, simulation.ensemble[i][j])
+                    end
+                end
             end
         end
     end
     return missing_traj
+end
+
+function missingTrajectories(sims::Vector{Simulation})
+    missing_traj = []
+    for sim in sims
+        push!(missing_traj, missingTrajectories(sim))
+    end
+    return reduce(vcat, missing_traj)
 end
 
 missingTrajectories(string::String) = missingTrajectories(loadMetadata(string))
