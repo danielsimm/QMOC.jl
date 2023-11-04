@@ -516,3 +516,6 @@ end
 
 missingTrajectories(string::String) = missingTrajectories(loadMetadata(string))
 
+# function mergeArchives(archive1, archive2)
+# function backupArchive()
+
