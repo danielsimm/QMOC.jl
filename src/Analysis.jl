@@ -9,16 +9,18 @@ function readTrajectory(traj::Trajectory) :: Measurement
         jldopen("data/archive.jld2", "r") do file
             return file["$(hash(traj))"]
         end
-    else
+    elseif boolComplete(traj)
         jldopen("data/measurements/$(hash(traj)).jld2", "r") do file
             return file["average"]
         end
+    else
+        error("Tried to read incomplete trajectory.")
     end
 end
 
 function average(traj_vec::Vector{Trajectory})
-    EE_arr = [average(traj).entropy for traj in traj_vec]
-    TMI_arr = [average(traj).tmi for traj in traj_vec]
+    EE_arr = [readTrajectory(traj).entropy for traj in traj_vec]
+    TMI_arr = [readTrajectory(traj).tmi for traj in traj_vec]
     EE = mean(permutedims(reduce(hcat, EE_arr)), dims=1)
     ΔEE = std(permutedims(reduce(hcat, EE_arr)), dims=1)
     TMI = mean(TMI_arr)
@@ -26,6 +28,7 @@ function average(traj_vec::Vector{Trajectory})
     return EE, ΔEE, TMI, ΔTMI
 end
 
+## TODO: write faster versions for simulations (especially archived ones)
 function evaluate(simulation::Simulation, observable::Symbol)
     if observable == :I3
         return simulation.parameter_set, [average(vec)[3] for vec in simulation.ensemble]
