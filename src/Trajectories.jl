@@ -123,13 +123,15 @@ function observe(state::QuantumClifford.AbstractStabilizer, trajectory::Trajecto
     for meas_id in existing_measurements+1:trajectory.number_of_measurements-1
         # independently spawn measurement and evolution
         
-        @sync begin
-            trajectory.verbosity == :debug ? (@info "[observe] Asynchronous measurement $(meas_id) at time $(time).") : nothing
-            Threads.@spawn measure(copy(state), trajectory, copy(meas_id), copy(time))
-            Threads.@spawn measurement_evolve!(state, trajectory, operators)
-            trajectory.verbosity == :debug ? (@info "[observe] Waiting for sync...") : nothing
-        end
-        trajectory.verbosity == :debug ? (@info "[observe] Synced.") : nothing
+        # @sync begin
+        #     trajectory.verbosity == :debug ? (@info "[observe] Asynchronous measurement $(meas_id) at time $(time).") : nothing
+        #     Threads.@spawn measure(copy(state), trajectory, copy(meas_id), copy(time))
+        #     Threads.@spawn measurement_evolve!(state, trajectory, operators)
+        #     trajectory.verbosity == :debug ? (@info "[observe] Waiting for sync...") : nothing
+        # end
+        measure(state, trajectory, meas_id, time)
+        measurement_evolve!(state, trajectory, operators)
+        # trajectory.verbosity == :debug ? (@info "[observe] Synced.") : nothing
         time += trajectory.measurement_steps
         
     end
@@ -144,13 +146,14 @@ end
 
     Overwrites a trajectory file containing a measurement series with its average.
 """
-function writeAverage(traj::Trajectory) :: nothing
+function writeAverage(traj::Trajectory) :: Nothing
     filename = "data/measurements/$(hash(traj)).jld2"
     measurements = Vector{Measurement}(undef, traj.number_of_measurements)
     try
         jldopen(filename, "r") do file
             file["average"]
         end
+        return nothing
     catch
         jldopen(filename, "r") do file
             for t in 1:traj.number_of_measurements
@@ -168,6 +171,7 @@ function writeAverage(traj::Trajectory) :: nothing
         jldopen(filename, "w") do file
             file["average"] = Measurement(EE, TMI)
         end
+        return nothing
     end
 end
 
