@@ -5,8 +5,8 @@ DocMeta.setdocmeta!(QMOC, :DocTestSetup, :(using QMOC); recursive=true)
 
 makedocs(
     sitename="QMOC",
-    modules=[QMOC]
-    authors = "Daniel Simm",
+    modules=[QMOC],
+    authors="Daniel Simm",
     repo="https://github.com/danielsimm/QMOC.jl/blob/{commit}{path}#{line}",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
