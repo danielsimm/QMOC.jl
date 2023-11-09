@@ -149,17 +149,19 @@ end
 function writeAverage(traj::Trajectory) :: Nothing
     filename = "data/measurements/$(hash(traj)).jld2"
     measurements = Vector{Measurement}(undef, traj.number_of_measurements)
-    try
-        jldopen(filename, "r") do file
-            file["average"]
-        end
-        return nothing
-    catch
-        jldopen(filename, "r") do file
+    overwrite = false
+    jldopen(filename, "r") do file
+        if !(haskey(file, "average"))
             for t in 1:traj.number_of_measurements
                 measurements[t] = file["$(t)"]
             end
+            overwrite = true
+        elseif traj.verbosity == :debug
+            @info "[writeAverage] Average already exists, skipping."
         end
+    end
+    
+    if overwrite
         EE = zeros(length(subsystem_labels(traj)))
         TMI = 0.0
         for meas in measurements
@@ -171,8 +173,8 @@ function writeAverage(traj::Trajectory) :: Nothing
         jldopen(filename, "w") do file
             file["average"] = Measurement(EE, TMI)
         end
-        return nothing
     end
+    return nothing
 end
 
 function run(trajectory::Trajectory)

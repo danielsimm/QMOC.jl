@@ -39,6 +39,10 @@ function test_simulation(type)
     return simulation(type, 12, "test_$(type)", 4, [[1//3, 1//3, 1//3], [1//2, 1//2, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]]; checkpoints=true, verbosity=:debug)
 end
 
+function test_simulation_large(type)
+    return simulation(type, 12, "test_$(type)_large", 10, parameter_line(:center, :px, 15); checkpoints=true)
+end
+
 function trajectory(
     type,
     size,
@@ -86,22 +90,79 @@ function _number_of_qubits(type::Symbol, size::Int) ::Int
     end
 end
 
-function simulate(simulation::Simulation)
+# function simulate(simulation::Simulation)
 
-    # set BLAS threads to 1 to avoid oversubscription
-    BLAS.set_num_threads(1)
+#     # set BLAS threads to 1 to avoid oversubscription
+#     BLAS.set_num_threads(1)
+#     trajectories = []
+#     for i in eachindex(simulation.ensemble)
+#         for j in eachindex(simulation.ensemble[i])
+#             push!(trajectories, simulation.ensemble[i][j])
+#         end
+#     end
+
+#     pmap(run, trajectories; retry_delays = zeros(3))
+
+#     # commit metadata to file
+#     commitMetadata(simulation)
+
+# end
+
+function simulate(sim::Simulation)
+    
+    MPI.Init()
+
+
+    comm = MPI.COMM_WORLD
+    rank = MPI.Comm_rank(comm)
+    world_size = MPI.Comm_size(comm)
+    nworkers = world_size - 1
+
+    root = 0
+
+    # collect all trajectories
     trajectories = []
-    for i in eachindex(simulation.ensemble)
-        for j in eachindex(simulation.ensemble[i])
-            push!(trajectories, simulation.ensemble[i][j])
+    for i in eachindex(sim.ensemble)
+        for j in eachindex(sim.ensemble[i])
+            push!(trajectories, sim.ensemble[i][j])
         end
     end
+    ntrajectories = length(trajectories)
 
-    pmap(run, trajectories; retry_delays = zeros(3))
-
-    # commit metadata to file
-    commitMetadata(simulation)
-
+    MPI.Barrier(comm)
+    if rank == root
+        println("Starting $(sim.name) with $(ntrajectories) trajectories on $(nworkers) workers...")
+    end
+    
+    # distribute indices to workers
+    if rank == root
+        # randomly distribute indices
+        indices = randperm(ntrajectories)
+        for i in 1:nworkers
+            MPI.send(indices[i:nworkers:end],comm; dest=i)
+        end
+    else
+        todo = MPI.recv(comm)
+        for i in todo
+            run(trajectories[i])
+        end
+    end
+    if rank == root
+        println("Dispatched to $(nworkers) MPI procs. Waiting for results..")
+    end
+    MPI.Barrier(comm)
+    if rank == root
+        if boolComplete(sim)
+            println("All trajectories completed.")
+            writeMetadata(sim)
+            println("Finished $(sim.name) with $(ntrajectories) trajectories on $(nworkers) workers.")
+        else
+            println("Not all trajectories completed.")
+        end
+    end
+    
+    MPI.Barrier(comm)
+    MPI.Finalize()
 end
 
 Base.show(io::IO, sim::Simulation) = 

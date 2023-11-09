@@ -6,8 +6,10 @@ using QuantumClifford
 using Statistics
 using JLD2
 using PrettyTables
+using MPI
+using Random
 
-import Distributed: @distributed, @everywhere, fetch, myid, pmap, remotecall
+# import Distributed: @distributed, @everywhere, fetch, myid, pmap, remotecall
 import JLD2: jldopen, load
 
 
@@ -28,8 +30,6 @@ if !isdir("data/metadata")
 end
 include("MetadataHandling.jl")
 # checkMetadataIntegrity()
-
-println("QMOC.jl loaded on worker $(myid()) with $(Threads.nthreads()) threads.")
 
 # from Simulators.jl
 export Simulation, simulation, simulate

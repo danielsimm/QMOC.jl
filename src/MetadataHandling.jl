@@ -26,26 +26,28 @@ function boolComplete(traj::Trajectory) :: Bool
         return true
     end
     if isfile("data/measurements/$(hash(traj)).jld2")
+        bool = false
         jldopen("data/measurements/$(hash(traj)).jld2", "r") do file
-            try # check if average is there
-                file["average"]
+            if haskey(file, "average") # check if average is there
                 traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Found average for trajectory $(hash(traj)).") : nothing
-                return true # average found
-            catch # no average found
+                bool = true # average found
+            else # no average found
                 # check if all measurements are there
                 for i in 1:traj.number_of_measurements
-                    try 
-                        file["$(i)"]
-                    catch # measurement missing
+                    if !(haskey(file, "$(i)")) # measurement missing
                         traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Missing measurement $(i) for trajectory $(hash(traj)).") : nothing
-                        return false
+                        bool = false
                     end
                 end
                 traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Found all measurements for trajectory $(hash(traj)). Average missing for unknown reasons.") : nothing
-                writeAverage(traj)
-                return true
+                bool = true
             end
         end
+        if bool
+            writeAverage(traj)
+        end
+
+        return bool
     else
         traj.verbosity == :debug ? (@info "[TrajectoryComplete?] No file exists for trajectory $(hash(traj)).") : nothing
         return false
@@ -79,14 +81,13 @@ end
 """
 function boolArchived(traj::Trajectory) :: Bool
     if isfile("data/archive.jld2") # check if archive exists
+        bool = false
         jldopen("data/archive.jld2", "r") do file
-            try
-                file["$(hash(traj))"] # check if trajectory is in archive
-                return true
-            catch
-                return false
+            if haskey(file, "$(hash(traj))") # check if trajectory is in archive
+                bool = true
             end
         end
+        return bool
     else
         return false
     end
@@ -181,6 +182,10 @@ function archive(sim::Simulation) :: Nothing
     return nothing
 end
 
+archive(string::String) = archive(loadMetadata(string))
+
+archive() = archive.([sim for sim in loadMetadata()])
+
 """
     removeTrajectories(sim::Simulation) :: Nothing
 
@@ -221,10 +226,10 @@ function writeMetadata(sim::Simulation)
     end
 
     try
-        jldopen("data/metadata/$(simulation.name).jld2", "a+") do file
-            file["simulation"] = simulation
+        jldopen("data/metadata/$(sim.name).jld2", "a+") do file
+            file["simulation"] = sim
         end
-        push!(SimulationArchive, simulation)
+        @info "Metadata file for simulation $(sim.name) written to disk."
     catch
         @info "Metadata file for simulation $(simulation.name) already exists."
     end
@@ -312,10 +317,6 @@ function printMetadata(sims::Vector{Simulation}) :: Nothing #custom printing fun
 end
 
 Base.show(io::IO, sims::Vector{Simulation}) = printMetadata(sims) #extend show function with custom pretty printing
-
-archiveTrajectories(string::String) = archiveTrajectories(loadMetadata(string))
-
-archiveTrajectories() = archiveTrajectories.([sim for sim in loadMetadata()])
 
 """
     allTrajectories()
@@ -429,23 +430,23 @@ function cleanup()
     backupcomplete = false
     if answer == "y"
         backupcomplete = backup()
-    end
-    if !backupcomplete
-        println("Backup failed. Continue anyway? (y/n)")
-        answer = readline()
-        if answer != "y"
-            println("Aborting.")
-            return nothing
+        if !backupcomplete
+            println("Backup failed. Continue anyway? (y/n)")
+            answer = readline()
+            if answer != "y"
+                println("Aborting.")
+                return nothing
+            end
         end
     end
-
+    
     # readout all adopted trajectories from archive
     all = allTrajectories()
     adopted = adoptedTrajectories()
     orphaned = setdiff(all, adopted)
     if isempty(orphaned)
         println("Metadata matches trajectories. Nothing to clean up.")
-        return nothing
+        @goto checkpoint_cleanup
     end
     adopted_archive = []
     if isfile("data/archive.jld2")
@@ -478,6 +479,15 @@ function cleanup()
     for hash in orphaned
         if isfile("data/measurements/$(hash).jld2")
             rm("data/measurements/$(hash).jld2")
+        end
+    end
+
+    @label chekpoint_cleanup
+    # delete checkpoints
+    files = readdir("data/checkpoints")
+    if !(isempty(files))
+        for file in files
+            rm("data/checkpoints/$(file)")
         end
     end
     println("Cleanup complete.")
@@ -516,6 +526,50 @@ end
 
 missingTrajectories(string::String) = missingTrajectories(loadMetadata(string))
 
-# function mergeArchives(archive1, archive2)
+
+function mergeArchives(archive1, archive2)
+    # read all keys and values from archive1
+    keys1 = []
+    values1 = []
+    if isfile(archive1)
+        jldopen(archive1, "r") do file
+            for key in keys(file)
+                push!(keys1, key)
+                push!(values1, file[key])
+            end
+        end
+    end
+    
+    # read all keys and values from archive2
+    keys2 = []
+    values2 = []
+    if isfile(archive2)
+        jldopen(archive2, "r") do file
+            for key in keys(file)
+                push!(keys2, key)
+                push!(values2, file[key])
+            end
+        end
+    end
+    
+    # merge the two files
+    merged_keys = union(keys1, keys2)
+    merged_values = []
+    for key in merged_keys
+        if key in keys1
+            push!(merged_values, values1[keys1 .== key][1])
+        else
+            push!(merged_values, values2[keys2 .== key][1])
+        end
+    end
+    
+    # write the merged archive
+    jldopen(archive1, "w") do file
+        for i in eachindex(merged_keys)
+            file[merged_keys[i]] = merged_values[i]
+        end
+    end
+end
+
 # function backupArchive()
 
