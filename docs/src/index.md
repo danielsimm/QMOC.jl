@@ -1,3 +1,16 @@
-# QMOC.jl
+```@meta
+CurrentModule = QMOC
+```
 
-Documentation for QMOC.jl
+# QMOC
+
+Documentation for [QMOC](https://github.com/danielsimm/QMOC.jl).
+
+```@index
+
+```
+
+```@autodocs
+Modules = [QMOC]
+Order   = [:function, :type]
+```
