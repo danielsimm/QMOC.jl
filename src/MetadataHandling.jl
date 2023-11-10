@@ -33,6 +33,7 @@ function boolComplete(traj::Trajectory)::Bool
                 bool = true # average found
             else # no average found
                 # check if all measurements are there
+                bool = true
                 for i in 1:traj.number_of_measurements
                     if !(haskey(file, "$(i)")) # measurement missing
                         traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Missing measurement $(i) for trajectory $(hash(traj)).") : nothing
@@ -40,7 +41,6 @@ function boolComplete(traj::Trajectory)::Bool
                     end
                 end
                 traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Found all measurements for trajectory $(hash(traj)). Average missing for unknown reasons.") : nothing
-                bool = true
             end
         end
         if bool
@@ -231,7 +231,7 @@ function writeMetadata(sim::Simulation)
         end
         @info "Metadata file for simulation $(sim.name) written to disk."
     catch
-        @info "Metadata file for simulation $(simulation.name) already exists."
+        @info "Metadata file for simulation $(sim.name) already exists."
     end
 end
 

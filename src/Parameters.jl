@@ -67,7 +67,7 @@ function parameter_wedge(resolution, mode=:radial)
             end
         end
     end
-    return reduce(vcat, parameters)
+    return unique(reduce(vcat, parameters))
 end
 
 """
