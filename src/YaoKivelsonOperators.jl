@@ -184,9 +184,9 @@ function _DHC_YY_operators(L) :: Vector{PauliOperator}
     return unique(operators)
 end
 
-function _DHC_J_operators(L) :: Vector{PauliOperator}
+function _DHC_J_operators_nonorientable(L) :: Vector{PauliOperator}
     N = 6*L^2
-    loops = _DHC_largeloop_sites(L)
+    loops = _DHC_smallloop_sites(L)
     operators = []
     for loop in loops
         for direction in [:X, :Y, :Z]
@@ -209,8 +209,32 @@ function _DHC_J_operators(L) :: Vector{PauliOperator}
     end
     return unique(operators)
 end
+_DHC_J_operators(L) = _DHC_J_operators_nonorientable(L)
 
-function _DHC_Jprime_operators(L) :: Vector{PauliOperator}
+function _DHC_J_operators_orientable(L) :: Vector{PauliOperator}
+    N = 6*L^2
+    loops = _DHC_smallloop_sites(L)
+    operators = []
+    for loop in loops
+        for direction in [:X, :Y, :Z]
+            Xarr = falses(N)
+            Zarr = falses(N)
+            if direction == :X
+                Xarr[loop[2]] = true
+                Xarr[loop[3]] = true
+            elseif direction == :Y
+                Xarr[loop[1]] = true
+                Xarr[loop[3]] = true
+                Zarr[loop[1]] = true
+                Zarr[loop[3]] = true
+            end
+            push!(operators, PauliOperator(0x00, Xarr, Zarr))
+        end
+    end
+    return unique(operators)
+end
+
+function _DHC_K_operators(L) :: Vector{PauliOperator}
     N = 6*L^2
     loops = _DHC_largeloop_sites(L)
     operators = []

@@ -1,4 +1,6 @@
 abstract type DecoratedHoneycombTrajectory <: Trajectory end
+
+abstract type YaoKivelsonJKTrajectory <: DecoratedHoneycombTrajectory end
 struct YaoKivelsonXYZTrajectory <: DecoratedHoneycombTrajectory
     size::Int
     nqubits::Int
@@ -12,7 +14,7 @@ struct YaoKivelsonXYZTrajectory <: DecoratedHoneycombTrajectory
     number_of_measurements::Int64
 end
 
-struct YaoKivelsonJJTrajectory <: DecoratedHoneycombTrajectory
+struct YaoKivelsonOrientableTrajectory <: YaoKivelsonJKTrajectory
     size::Int
     nqubits::Int
     name::String
@@ -25,7 +27,20 @@ struct YaoKivelsonJJTrajectory <: DecoratedHoneycombTrajectory
     number_of_measurements::Int64
 end
 
-export YaoKivelsonXYZTrajectory, YaoKivelsonJJTrajectory, DecoratedHoneycombTrajectory
+struct YaoKivelsonNonorientableTrajectory <: YaoKivelsonJKTrajectory
+    size::Int
+    nqubits::Int
+    name::String
+    params::Vector{Any}
+    checkpoints::Bool
+    verbosity::Symbol
+    index::Int64
+    thermalization_steps::Int64
+    measurement_steps::Int64
+    number_of_measurements::Int64
+end
+
+export YaoKivelsonXYZTrajectory, YaoKivelsonNonorientableTrajectory, YaoKivelsonOrientableTrajectory, DecoratedHoneycombTrajectory
 
 ### Operators ###
 
@@ -39,10 +54,17 @@ function get_operators(trajectory::YaoKivelsonXYZTrajectory)
     return matrix
 end
 
-function get_operators(trajectory::YaoKivelsonJJTrajectory)
+function get_operators(trajectory::YaoKivelsonOrientableTrajectory)
     matrix = Matrix{PauliOperator}(undef, 2, 3*trajectory.size^2)
-    matrix[1, :] = _DHC_J_operators(trajectory.size)
-    matrix[2, :] = _DHC_Jprime_operators(trajectory.size)
+    matrix[1, :] = _DHC_J_operators_orientable(trajectory.size)
+    matrix[2, :] = _DHC_K_operators(trajectory.size)
+    return matrix
+end
+
+function get_operators(trajectory::YaoKivelsonNonorientableTrajectory)
+    matrix = Matrix{PauliOperator}(undef, 2, 3*trajectory.size^2)
+    matrix[1, :] = _DHC_J_operators_nonorientable(trajectory.size)
+    matrix[2, :] = _DHC_K_operators(trajectory.size)
     return matrix
 end
 
@@ -63,43 +85,43 @@ function initialise(trajectory::DecoratedHoneycombTrajectory; basis=:Z) :: Mixed
     return state
 end
 
-function _DHC_randomXXmeasurement!(state::QuantumClifford.MixedDestabilizer)
-    N = nqubits(state)
-    L = Int(sqrt(N/6))
-    Xarr = falses(N)
-    Zarr = falses(N)
-    random_site = rand(1:N)
-    Xarr[random_site] = true
-    Xarr[_DHC_xneighbour(random_site, L)] = true
-    project!(state, PauliOperator(0x00, Xarr, Zarr), keep_result=false, phases=false)
-    return nothing
-end
+# function _DHC_randomXXmeasurement!(state::QuantumClifford.MixedDestabilizer)
+#     N = nqubits(state)
+#     L = Int(sqrt(N/6))
+#     Xarr = falses(N)
+#     Zarr = falses(N)
+#     random_site = rand(1:N)
+#     Xarr[random_site] = true
+#     Xarr[_DHC_xneighbour(random_site, L)] = true
+#     project!(state, PauliOperator(0x00, Xarr, Zarr), keep_result=false, phases=false)
+#     return nothing
+# end
 
-function _DHC_randomYYmeasurement!(state::QuantumClifford.MixedDestabilizer)
-    N = nqubits(state)
-    L = Int(sqrt(N/6))
-    Xarr = falses(N)
-    Zarr = falses(N)
-    random_site = rand(1:N)
-    Xarr[random_site] = true
-    Zarr[random_site] = true
-    Xarr[_DHC_yneighbour(random_site, L)] = true
-    Zarr[_DHC_yneighbour(random_site, L)] = true
-    project!(state, PauliOperator(0x00, Xarr, Zarr), keep_result=false, phases=false)
-    return nothing
-end
+# function _DHC_randomYYmeasurement!(state::QuantumClifford.MixedDestabilizer)
+#     N = nqubits(state)
+#     L = Int(sqrt(N/6))
+#     Xarr = falses(N)
+#     Zarr = falses(N)
+#     random_site = rand(1:N)
+#     Xarr[random_site] = true
+#     Zarr[random_site] = true
+#     Xarr[_DHC_yneighbour(random_site, L)] = true
+#     Zarr[_DHC_yneighbour(random_site, L)] = true
+#     project!(state, PauliOperator(0x00, Xarr, Zarr), keep_result=false, phases=false)
+#     return nothing
+# end
 
-function _DHC_randomZZmeasurement!(state::QuantumClifford.MixedDestabilizer)
-    N = nqubits(state)
-    L = Int(sqrt(N/6))
-    Xarr = falses(N)
-    Zarr = falses(N)
-    random_site = rand(1:N)
-    Zarr[random_site] = true
-    Zarr[_DHC_zneighbour(random_site, L)] = true
-    project!(state, PauliOperator(0x00, Xarr, Zarr), keep_result=false, phases=false)
-    return nothing
-end
+# function _DHC_randomZZmeasurement!(state::QuantumClifford.MixedDestabilizer)
+#     N = nqubits(state)
+#     L = Int(sqrt(N/6))
+#     Xarr = falses(N)
+#     Zarr = falses(N)
+#     random_site = rand(1:N)
+#     Zarr[random_site] = true
+#     Zarr[_DHC_zneighbour(random_site, L)] = true
+#     project!(state, PauliOperator(0x00, Xarr, Zarr), keep_result=false, phases=false)
+#     return nothing
+# end
 
 
 ### Dynamics ###
@@ -122,19 +144,17 @@ function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivel
     return nothing
 end
 
-function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivelsonJJTrajectory, operators)
-    pJ = trajectory.params[1]
-    pJprime = trajectory.params[2]
-    L = trajectory.size
+function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivelsonJKTrajectory, operators)
+    J = trajectory.params[1] # probability of triangular measurement, orientable: silence triangular Z bond, non-orientable: all bonds
+    # K = trajectory.params[2] # probability of hexagonal/Kitaev-style measurement
     for subtime in 1:trajectory.nqubits
         p = rand()
-        if p < pJ
-            project!(state, operators[1, rand(1:3*L^2)], keep_result=false, phases=false)
-        elseif p < pJ + pJprime
-            project!(state, operators[2, rand(1:3*L^2)], keep_result=false, phases=false)
+        if p < J
+            project!(state, operators[1, rand(1:3*trajectory.size^2)], keep_result=false, phases=false)
+        else
+            project!(state, operators[2, rand(1:3*trajectory.size^2)], keep_result=false, phases=false)
         end
     end
-    return nothing
 end
 
 
