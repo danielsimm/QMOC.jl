@@ -63,6 +63,10 @@ function hot_start(trajectory::Trajectory)
         end
         trajectory.verbosity == :debug ? (@info "--- [hotstart] Checkpoint info --- \n Time: $(time) \n Thermalised: $(time>trajectory.thermalization_steps) \n Existing measurements: $(existing_measurements) of $(trajectory.number_of_measurements)") : nothing
     else
+        if isfile(filename2)
+            #delete previous measurements when no checkpoint is found
+            rm(filename2)
+        end
         trajectory.verbosity == :debug ? (@info "[hotstart] No previous data found, initialising state...") : nothing
         state = initialise(trajectory)
         trajectory.verbosity == :debug ? (@info "[hotstart] Done.") : nothing
@@ -206,6 +210,7 @@ function run(trajectory::Trajectory)
     if !(boolComplete(trajectory)) #implicitly averages trajectory if complete
         @warn "Trajectory $(trajectory.index) of $(trajectory.name) failed!"
     end
+    GC.gc()
     trajectory.verbosity == :info ? (@info "[run] Trajectory time: $(Dates.format(convert(DateTime, tock-tick), "HH:MM:SS")).") : nothing
     trajectory.verbosity == :debug ? (@info "[run] Trajectory time: $(Dates.format(convert(DateTime, tock-tick), "HH:MM:SS")), trajectory $(trajectory.index) of $(trajectory.name).") : nothing
 end
