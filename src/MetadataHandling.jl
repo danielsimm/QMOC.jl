@@ -162,20 +162,52 @@ function archive(sim::Simulation)::Nothing
         @info "Trajectories already archived."
         return nothing
     end
+    
+    # check if all trajectories are complete
+    if !boolComplete(sim)
+        @warn "Not all trajectories are complete. Aborting."
+        return nothing
+    end
 
+    # collect hashes and measurements
+    hashes = []
+    measurements = []
     for i in eachindex(sim.ensemble)
         for j in eachindex(sim.ensemble[i])
-            archive(sim.ensemble[i][j])
+           push!(hashes, hash(sim.ensemble[i][j]))
+           jldopen("data/measurements/$(hash(sim.ensemble[i][j])).jld2", "r") do file
+               push!(measurements, file["average"])
+           end
+        end
+    end
+
+    # collect exisiting hashes
+    existing_hashes = []
+    if isfile("data/archive.jld2")
+        jldopen("data/archive.jld2", "r") do file
+            for key in keys(file)
+                push!(existing_hashes, key)
+            end
+        end
+    end
+
+    # remove existing hashes
+    hashes = setdiff(hashes, existing_hashes)
+    
+    # write to archive
+    jldopen("data/archive.jld2", "a+") do file
+        for i in eachindex(hashes)
+            file["$(hashes[i])"] = measurements[i]
         end
     end
 
     if boolArchived(sim)
         println("All trajectories archived.")
-        println("Do you want to delete the original files? (y/n)")
-        answer = readline()
-        if answer == "y"
-            removeTrajectories(sim)
-        end
+        # println("Do you want to delete the original files? (y/n)")
+        # answer = readline()
+        # if answer == "y"
+        #     removeTrajectories(sim)
+        # end
     else
         println("Something went wrong. Not all trajectories were archived.")
     end
@@ -424,65 +456,87 @@ end
 
     Cleans up the filesystem by archiving all trajectories in the metadata and deleting all orphaned trajectories.
 """
-function cleanup()
-    println("Perform backup before cleanup? (y/n)")
-    answer = readline()
-    backupcomplete = false
-    if answer == "y"
-        backupcomplete = backup()
-        if !backupcomplete
-            println("Backup failed. Continue anyway? (y/n)")
-            answer = readline()
-            if answer != "y"
-                println("Aborting.")
-                return nothing
-            end
-        end
-    end
-
-    # readout all adopted trajectories from archive
-    all = allTrajectories()
-    adopted = adoptedTrajectories()
-    orphaned = setdiff(all, adopted)
-    if isempty(orphaned)
-        println("Metadata matches trajectories. Nothing to clean up.")
-        @goto checkpoint_cleanup
-    end
-    adopted_archive = []
-    if isfile("data/archive.jld2")
-        jldopen("data/archive.jld2", "r") do file
-            for key in keys(file)
-                push!(adopted_archive, file[key])
-            end
-        end
-    end
-    # write new archive
-    jldopen("data/archive.jld2", "w") do file
-        for i in eachindex(adopted)
-            file["$(adopted[i])"] = adopted_archive[i]
-        end
-    end
-
-    # archive free trajectories
-    sims = loadMetadata()
-    for sim in sims
-        for i in eachindex(sim.ensemble)
-            for j in eachindex(sim.ensemble[i])
-                if !(hash(sim.ensemble[i][j]) in adopted)
-                    archive(sim.ensemble[i][j])
+function cleanup(;interactive::Bool=true)::Nothing
+    if interactive
+        println("Perform backup before cleanup? (y/n)")
+        answer = readline()
+        backupcomplete = false
+        if answer == "y"
+            backupcomplete = backup()
+            if !backupcomplete
+                println("Backup failed. Continue anyway? (y/n)")
+                answer = readline()
+                if answer != "y"
+                    println("Aborting.")
+                    return nothing
                 end
             end
         end
     end
 
-    # delete remaining files
-    for hash in orphaned
+    # readout all adopted trajectories from archive
+    simulations = loadMetadata()
+    all_hashes = allTrajectories()
+    adopted_hashes = adoptedTrajectories()
+    orphaned_hashes = setdiff(all_hashes, adopted_hashes)
+    archived_hashes = archivedTrajectories()
+    archived_measurements = []
+    if isfile("data/archive.jld2")
+        jldopen("data/archive.jld2", "r") do file
+            for key in keys(file)
+                push!(archived_measurements, file[key])
+            end
+        end
+    end
+    # add adopted, non-archived trajectories to archive
+    for sim in simulations
+        for i in eachindex(sim.ensemble)
+            for j in eachindex(sim.ensemble[i])
+                if !(hash(sim.ensemble[i][j]) in archived_hashes)
+                    if !(hash(sim.ensemble[i][j]) in orphaned_hashes)
+                        jldopen("data/measurements/$(hash(sim.ensemble[i][j])).jld2", "r") do file
+                            push!(archived_measurements, file["average"])
+                        end
+                        push!(archived_hashes, hash(sim.ensemble[i][j]))
+                    end
+                end
+            end
+        end
+    end
+    # write new archive
+    println("Writing new archive with $(length(archived_hashes)) trajectories... ")
+    jldopen("data/archive.jld2", "w") do file
+        for i in eachindex(archived_hashes)
+            file["$(archived_hashes[i])"] = archived_measurements[i]
+        end
+    end
+    print("Done!")
+
+    # remove archived trajectories
+    println("Deleting $(length(archived_hashes)) trajectory files... ")
+    for hash in archived_hashes
         if isfile("data/measurements/$(hash).jld2")
             rm("data/measurements/$(hash).jld2")
         end
     end
+    print("Done!")
 
-    @label checkpoint_cleanup
+    # delete remaining files
+    if interactive
+        println("Do you want to delete all orphaned trajectories? (y/n)")
+        answer = readline()
+        if answer == "y"
+            println("Deleting $(length(orphaned_hashes)) orphaned trajectories... ")
+            for hash in orphaned_hashes
+                if isfile("data/measurements/$(hash).jld2")
+                    rm("data/measurements/$(hash).jld2")
+                end
+            end
+            print("Done!")
+        end
+    end
+    
+
     # delete checkpoints
     files = readdir("data/checkpoints")
     if !(isempty(files))
@@ -570,5 +624,7 @@ function mergeArchives(archive1, archive2)
         end
     end
 end
+
+mergeArchive(path) = mergeArchives("data/archive.jld2", path)
 
 # function backupArchive()
