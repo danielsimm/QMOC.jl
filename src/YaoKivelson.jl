@@ -55,17 +55,19 @@ function get_operators(trajectory::YaoKivelsonXYZTrajectory)
 end
 
 function get_operators(trajectory::YaoKivelsonOrientableTrajectory)
-    matrix = Matrix{PauliOperator}(undef, 2, 3*trajectory.size^2)
-    matrix[1, :] = _DHC_J_operators_orientable(trajectory.size)
-    matrix[2, :] = _DHC_K_operators(trajectory.size)
-    return matrix
+    L = trajectory.size
+    vector = Vector{PauliOperator}(undef, (3+4)*L^2)
+    vector[1:4*L^2] = _DHC_J_operators_orientable(L)
+    vector[4*L^2+1:end] = _DHC_K_operators(L)
+    return vector
 end
 
 function get_operators(trajectory::YaoKivelsonNonorientableTrajectory)
-    matrix = Matrix{PauliOperator}(undef, 2, 3*trajectory.size^2)
-    matrix[1, :] = _DHC_J_operators_nonorientable(trajectory.size)
-    matrix[2, :] = _DHC_K_operators(trajectory.size)
-    return matrix
+    L = trajectory.size
+    vector = Vector{PauliOperator}(undef, (3+6)*L^2)
+    vector[1:6*L^2] = _DHC_J_operators_nonorientable(L)
+    vector[6*L^2+1:end] = _DHC_K_operators(L)
+    return vector
 end
 
 function initialise(trajectory::DecoratedHoneycombTrajectory; basis=:Z) :: MixedDestabilizer
@@ -144,16 +146,31 @@ function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivel
     return nothing
 end
 
-function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivelsonJKTrajectory, operators)
+function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivelsonOrientableTrajectory, operators)
     J = trajectory.params[1] # probability of triangular measurement, orientable: silence triangular Z bond, non-orientable: all bonds
-    # K = trajectory.params[2] # probability of hexagonal/Kitaev-style measurement
+    K = trajectory.params[2] # probability of hexagonal/Kitaev-style measurement
     for subtime in 1:trajectory.nqubits
         p = rand()
         if p < J
-            project!(state, operators[1, rand(1:3*trajectory.size^2)], keep_result=false, phases=false)
+            project!(state, operators[rand(1:4*trajectory.size^2)], keep_result=false, phases=false)
         else
-            project!(state, operators[2, rand(1:3*trajectory.size^2)], keep_result=false, phases=false)
+            project!(state, operators[4*trajectory.size^2+rand(1:3*trajectory.size^2)], keep_result=false, phases=false)
         end
+
+    end
+end
+
+function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivelsonNonorientableTrajectory, operators)
+    J = trajectory.params[1] # probability of triangular measurement, orientable: silence triangular Z bond, non-orientable: all bonds
+    K = trajectory.params[2] # probability of hexagonal/Kitaev-style measurement
+    for subtime in 1:trajectory.nqubits
+        p = rand()
+        if p < J
+            project!(state, operators[rand(1:6*trajectory.size^2)], keep_result=false, phases=false)
+        else
+            project!(state, operators[6*trajectory.size^2+rand(1:3*trajectory.size^2)], keep_result=false, phases=false)
+        end
+
     end
 end
 

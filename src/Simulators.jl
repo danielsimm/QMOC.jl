@@ -67,8 +67,10 @@ function trajectory(
         return KitaevTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     elseif type == :YaoKivelsonXYZ
         return YaoKivelsonXYZTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
-    elseif type == :YaoKivelsonJJ
-        return YaoKivelsonJJTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+    elseif type == :YaoKivelsonNonorientable
+        return YaoKivelsonNonorientableTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
+    elseif type == :YaoKivelsonOrientable
+        return YaoKivelsonOrientableTrajectory(size, nqubits, name, parameters, checkpoints, verbosity, index, thermalization_steps, measurement_steps, number_of_measurements)
     else
         error("Type $(type) not implemented.")
     end
@@ -83,7 +85,7 @@ function _number_of_qubits(type::Symbol, size::Int) ::Int
         return size
     elseif type in [:Kekule, :Kitaev]
         return 2 * size^2
-    elseif type in [:YaoKivelsonXYZ, :YaoKivelsonJJ]
+    elseif type in [:YaoKivelsonXYZ, :YaoKivelsonNonorientable, :YaoKivelsonOrientable]
         return 3 * size^2
     else
         error("Type $(type) not implemented.")

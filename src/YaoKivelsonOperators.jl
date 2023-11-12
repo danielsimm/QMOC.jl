@@ -216,7 +216,7 @@ function _DHC_J_operators_orientable(L) :: Vector{PauliOperator}
     loops = _DHC_smallloop_sites(L)
     operators = []
     for loop in loops
-        for direction in [:X, :Y, :Z]
+        for direction in [:X, :Y]
             Xarr = falses(N)
             Zarr = falses(N)
             if direction == :X
