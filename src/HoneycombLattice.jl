@@ -164,7 +164,7 @@ end
 function honeycomblattice(L) :: HoneycombLattice
     sites = Vector{HoneycombLatticeSite}(undef, 2*L^2)
     for i in eachindex(sites)
-        lattice[i] = HoneycombLatticeSite(
+        sites[i] = HoneycombLatticeSite(
             i, 
             _HC_xneighbour(i, L), 
             _HC_yneighbour(i, L), 

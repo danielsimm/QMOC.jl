@@ -40,7 +40,7 @@ function get_operators(trajectory::KitaevTrajectory)
 end
 
 function get_operators(trajectory::KekuleTrajectory)
-    matrix = Matrix{PauliOperator}(undef, 9, trajectory.size^2)
+    matrix = Matrix{PauliOperator}(undef, 3, trajectory.size^2)
     matrix[1, :] .= _HC_red_operators(trajectory.size)
     matrix[2, :] .= _HC_green_operators(trajectory.size)
     matrix[3, :] .= _HC_blue_operators(trajectory.size)
@@ -107,6 +107,33 @@ function entropy(state::QuantumClifford.MixedDestabilizer, trajectory::Honeycomb
     end
     return EE
 end
+
+# function pure_honeycomb_entanglement(state::QuantumClifford.MixedDestabilizer, subsystem_qubits, num_qubits, L)
+#     stab = stabilizerview(state)
+#     N = num_qubits
+#     n_crossings = 0
+#     non_subsystem_qubits = setdiff(1:N, subsystem_qubits)
+#     for i in 1:N
+#         non_idents = xbit(stab[i]) .|| zbit(stab[i])
+#         non_idents_subA = non_idents[subsystem_qubits]
+#         non_idents_subB = non_idents[non_subsystem_qubits]
+#         if sum(non_idents_subA) > 0 && sum(non_idents_subB) > 0
+#             n_crossings += 1
+#         end
+#     end
+#     return L/2 - 1 + n_crossings/2
+# end
+
+    
+
+# function new_entropy(state::QuantumClifford.MixedDestabilizer, trajectory::HoneycombTrajectory)
+#     L = trajectory.size
+#     EE = zeros(L+1)
+#     for i in 1:L
+#         EE[i+1] = pure_honeycomb_entanglement(state, HC_subsystem(L, 1:i), trajectory.nqubits, L)
+#     end
+#     return EE
+# end
 
 function subsystem_labels(trajectory::HoneycombTrajectory)
     L = trajectory.size

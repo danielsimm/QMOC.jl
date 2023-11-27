@@ -331,8 +331,8 @@ function plot_operators(lattice::QMOC.DecoratedHoneycombLattice, ops::Vector{Qua
     latticered = RGBf(231/256, 76/256, 60/256)
     latticegreen = RGBf(33/256, 199/256, 135/256)
     latticeblue = RGBf(52/256, 152/256, 219/256)
-    fig = Figure(resolution = (800, 800), backgroundcolor = background)
-    ax = Axis(fig[1, 1], aspect = DataAspect(), backgroundcolor = background)
+    fig = Figure(resolution = (800, 800), backgroundcolor = (:white, 0.0))
+    ax = Axis(fig[1, 1], aspect = DataAspect(), backgroundcolor = (:white, 0.0))
     L = lattice.L
     sites = lattice.sites
     # draw sites
@@ -356,12 +356,12 @@ function plot_operators(lattice::QMOC.DecoratedHoneycombLattice, ops::Vector{Qua
         yneighboury = sites[sites[i].yneighbour].cartesiany
         zneighbourx = sites[sites[i].zneighbour].cartesianx
         zneighboury = sites[sites[i].zneighbour].cartesiany
-        lines!(ax, [x, xneighbourx], [y, xneighboury], color=latticeblack, linewidth=2.0)
+        lines!(ax, [x, xneighbourx], [y, xneighboury], color=latticeblack, linewidth=1.0)
         if !(abs(x - yneighbourx) > 1.1)
-            lines!(ax, [x, yneighbourx], [y, yneighboury], color=latticeblack, linewidth=2.0)
+            lines!(ax, [x, yneighbourx], [y, yneighboury], color=latticeblack, linewidth=1.0)
         end
         if !(abs(y - zneighboury) > 1.5)
-            lines!(ax, [x, zneighbourx], [y, zneighboury], color=latticeblack, linewidth=2.0)
+            lines!(ax, [x, zneighbourx], [y, zneighboury], color=latticeblack, linewidth=1.0)
         end
     end
     # draw operators
@@ -382,6 +382,110 @@ function plot_operators(lattice::QMOC.DecoratedHoneycombLattice, ops::Vector{Qua
         if !(abs(x1 - x2) > 1.5)
             if !(abs(y1 - y2) > 1.5)
                 lines!(ax, [x1, x2], [y1, y2], color=color, linewidth=4.0)
+            end
+        end
+    end
+    hidedecorations!(ax)
+    hidespines!(ax)
+    return fig
+end
+
+function plot_operators_kekule(lattice::QMOC.HoneycombLattice, ops::Matrix{QuantumClifford.PauliOperator}; label=false)
+    background = RGBf(236/256, 240/256, 241/256)
+    latticeblack = RGBf(28/256, 40/256, 51/256)
+    latticered = RGBf(231/256, 76/256, 60/256)
+    latticegreen = RGBf(33/256, 199/256, 135/256)
+    latticeblue = RGBf(52/256, 152/256, 219/256)
+    fig = Figure(resolution = (800, 800), backgroundcolor = (:white, 0.0))
+    ax = Axis(fig[1, 1], aspect = DataAspect(), backgroundcolor = (:white, 0.0))
+    L = lattice.L
+    sites = lattice.sites
+    # draw sites
+    for i in eachindex(sites)
+        x = sites[i].cartesianx
+        y = sites[i].cartesiany
+        point = scatter!(ax, x, y, markersize = 120/L, color=latticeblack)
+        translate!(point,0,0,1)
+        if label
+            text = text!(x, y, text = "$(sites[i].lindex)", color=:white, align=(:center, :center))
+            translate!(text,0,0,2)
+        end
+    end
+    # draw lattice
+    for i in eachindex(sites)
+        x = sites[i].cartesianx
+        y = sites[i].cartesiany
+        xneighbourx = sites[sites[i].xneighbour].cartesianx
+        xneighboury = sites[sites[i].xneighbour].cartesiany
+        yneighbourx = sites[sites[i].yneighbour].cartesianx
+        yneighboury = sites[sites[i].yneighbour].cartesiany
+        zneighbourx = sites[sites[i].zneighbour].cartesianx
+        zneighboury = sites[sites[i].zneighbour].cartesiany
+        lines!(ax, [x, xneighbourx], [y, xneighboury], color=latticeblack, linewidth=2.0)
+        if !(abs(x - yneighbourx) > 1.1)
+            lines!(ax, [x, yneighbourx], [y, yneighboury], color=latticeblack, linewidth = 2.0)
+        end
+        if !(abs(y - zneighboury) > 1.5)
+            lines!(ax, [x, zneighbourx], [y, zneighboury], color=latticeblack, linewidth = 2.0)
+        end
+    end
+    # draw operators
+    # for op in ops
+    #     qubits = operatorqubits(op)[1]
+    #     strings = operatorqubits(op)[2]
+    #     if strings[1] == "X"
+    #         color = latticered
+    #     elseif strings[1] == "Y"
+    #         color = latticegreen
+    #     elseif strings[1] == "Z"
+    #         color = latticeblue
+    #     end
+    #     x1 = sites[qubits[1]].cartesianx
+    #     y1 = sites[qubits[1]].cartesiany
+    #     x2 = sites[qubits[2]].cartesianx
+    #     y2 = sites[qubits[2]].cartesiany
+    #     if !(abs(x1 - x2) > 1.5)
+    #         if !(abs(y1 - y2) > 1.5)
+    #             lines!(ax, [x1, x2], [y1, y2], color=color, linewidth=8.0)
+    #         end
+    #     end
+    # end
+    for i in 1:L^2 # red connections
+        op = ops[1, i]
+        qubits = operatorqubits(op)[1]
+        x1 = sites[qubits[1]].cartesianx
+        y1 = sites[qubits[1]].cartesiany
+        x2 = sites[qubits[2]].cartesianx
+        y2 = sites[qubits[2]].cartesiany
+        if !(abs(x1 - x2) > 1.5)
+            if !(abs(y1 - y2) > 1.5)
+                lines!(ax, [x1, x2], [y1, y2], color=latticered, linewidth=8.0)
+            end
+        end
+    end
+    for i in 1:L^2 # green connections
+        op = ops[2, i]
+        qubits = operatorqubits(op)[1]
+        x1 = sites[qubits[1]].cartesianx
+        y1 = sites[qubits[1]].cartesiany
+        x2 = sites[qubits[2]].cartesianx
+        y2 = sites[qubits[2]].cartesiany
+        if !(abs(x1 - x2) > 1.5)
+            if !(abs(y1 - y2) > 1.5)
+                lines!(ax, [x1, x2], [y1, y2], color=latticegreen, linewidth=8.0)
+            end
+        end
+    end
+    for i in 1:L^2 # blue connections
+        op = ops[3, i]
+        qubits = operatorqubits(op)[1]
+        x1 = sites[qubits[1]].cartesianx
+        y1 = sites[qubits[1]].cartesiany
+        x2 = sites[qubits[2]].cartesianx
+        y2 = sites[qubits[2]].cartesiany
+        if !(abs(x1 - x2) > 1.5)
+            if !(abs(y1 - y2) > 1.5)
+                lines!(ax, [x1, x2], [y1, y2], color=latticeblue, linewidth=8.0)
             end
         end
     end

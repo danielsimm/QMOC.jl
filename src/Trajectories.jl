@@ -181,6 +181,10 @@ function writeAverage(traj::Trajectory) :: Nothing
     return nothing
 end
 
+function run(trajectory::Nothing)
+    return nothing
+end
+
 function run(trajectory::Trajectory)
     if !isdir("data")
         mkdir("data")
@@ -190,6 +194,9 @@ function run(trajectory::Trajectory)
     end
     if !isdir("data/checkpoints")
         mkdir("data/checkpoints")
+    end
+    if boolArchived(trajectory)
+        return nothing
     end
     if boolComplete(trajectory)
         return nothing

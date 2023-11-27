@@ -29,3 +29,10 @@ Manifest.toml
 data/
 
 .vscode
+*.pdf
+
+*.jld2
+
+scalingtestfile
+
+analysis/

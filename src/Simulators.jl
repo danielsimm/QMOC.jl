@@ -132,6 +132,17 @@ function simulate(sim::Simulation)
     trajectories = unique(trajectories)
     ntrajectories = length(trajectories)
 
+    # skip archived trajectories
+    if rank == root
+        archived_hashes = archivedTrajectories()
+        for i in eachindex(trajectories)
+            if hash(trajectories[i]) in archived_hashes
+               trajectories[i] = nothing
+            end
+        end
+
+    end
+
     MPI.Barrier(comm)
     if rank == root
         println("Starting $(sim.name) with $(ntrajectories) trajectories on $(nworkers) workers...")

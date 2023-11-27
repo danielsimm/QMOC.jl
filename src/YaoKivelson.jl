@@ -81,7 +81,7 @@ function initialise(trajectory::DecoratedHoneycombTrajectory; basis=:Z) :: Mixed
     end
     stabs = [bilinears..., _DHC_largeloop_operators(L)..., _DHC_smallloop_operators(L)..., _DHC_wilsonline_operators(L)...]
     state = MixedDestabilizer(Stabilizer(stabs))
-    if QuantumClifford.trusted_rank(state) != trajectory.nqubits
+    if (QuantumClifford.trusted_rank(state) != trajectory.nqubits) && (trajectory.verbosity == :debug)
         @warn "Initial state is not pure."
     end
     return state

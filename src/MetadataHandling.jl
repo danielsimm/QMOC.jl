@@ -3,16 +3,17 @@
 
     Returns a vector of all trajectory hashes in the archive.
 """
-function archivedTrajectories()
-    archivedtrajectories = []
+function archivedTrajectories() ::Vector{UInt}
     if isfile("data/archive.jld2")
-        jldopen("data/archive.jld2", "r") do file
-            for key in keys(file)
-                push!(archivedtrajectories, key)
-            end
+        ks = jldopen("data/archive.jld2", "r") do file
+            keys(file)
         end
     end
-    return parse.(UInt, archivedtrajectories)
+    return parse.(UInt, ks)
+end
+
+function hashes(sim::Simulation)
+    return [hash(sim.ensemble[i][j]) for i in eachindex(sim.ensemble) for j in eachindex(sim.ensemble[i])]
 end
 
 """
@@ -21,38 +22,34 @@ end
     Checks if a trajectory is complete, i.e. if all measurements are present. Automatically averages if all measurements are present but no average is found.
 """
 function boolComplete(traj::Trajectory)::Bool
-    if boolArchived(traj)
-        traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Trajectory $(hash(traj)) already archived.") : nothing
-        return true
-    end
     if isfile("data/measurements/$(hash(traj)).jld2")
         bool = false
         jldopen("data/measurements/$(hash(traj)).jld2", "r") do file
             if haskey(file, "average") # check if average is there
-                traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Found average for trajectory $(hash(traj)).") : nothing
+                # traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Found average for trajectory $(hash(traj)).") : nothing
                 bool = true # average found
             else # no average found
                 # check if all measurements are there
                 bool = true
                 for i in 1:traj.number_of_measurements
                     if !(haskey(file, "$(i)")) # measurement missing
-                        traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Missing measurement $(i) for trajectory $(hash(traj)).") : nothing
+                        # traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Missing measurement $(i) for trajectory $(hash(traj)).") : nothing
                         bool = false
                     end
                 end
-                traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Found all measurements for trajectory $(hash(traj)). Average missing for unknown reasons.") : nothing
+                # traj.verbosity == :debug ? (@info "[TrajectoryComplete?] Found all measurements for trajectory $(hash(traj)). Average missing for unknown reasons.") : nothing
             end
         end
         if bool
             writeAverage(traj)
         end
-
         return bool
     else
-        traj.verbosity == :debug ? (@info "[TrajectoryComplete?] No file exists for trajectory $(hash(traj)).") : nothing
+        # traj.verbosity == :debug ? (@info "[TrajectoryComplete?] No file exists for trajectory $(hash(traj)).") : nothing
         return false
     end
 end
+
 
 """
     boolComplete(sim::Simulation) :: Bool
@@ -61,16 +58,21 @@ end
 """
 function boolComplete(sim::Simulation)::Bool
     archived = archivedTrajectories()
+    sim_hashes = hashes(sim)
+    diff = setdiff(sim_hashes, archived) # non-archived trajectories
+    completed = 0
+
     for i in eachindex(sim.ensemble)
         for j in eachindex(sim.ensemble[i])
-            if !(hash(sim.ensemble[i][j]) in archived)
-                if !boolComplete(sim.ensemble[i][j])
-                    return false
+            if (hash(sim.ensemble[i][j]) in diff)
+                if boolComplete(sim.ensemble[i][j]) 
+                    completed += 1
                 end
             end
         end
     end
-    return true
+
+    return (completed == length(diff))
 end
 
 
@@ -80,17 +82,10 @@ end
     Checks if a trajectory is archived, i.e. if the measurement average is present in the archive.
 """
 function boolArchived(traj::Trajectory)::Bool
-    if isfile("data/archive.jld2") # check if archive exists
-        bool = false
-        jldopen("data/archive.jld2", "r") do file
-            if haskey(file, "$(hash(traj))") # check if trajectory is in archive
-                bool = true
-            end
-        end
-        return bool
-    else
-        return false
-    end
+    archived = archivedTrajectories()
+    traj_hash = hash(traj)
+    diff = setdiff(traj_hash, archived)
+    return isempty(diff)
 end
 
 """
@@ -100,14 +95,9 @@ end
 """
 function boolArchived(sim::Simulation)::Bool
     archived = archivedTrajectories()
-    for i in eachindex(sim.ensemble)
-        for j in eachindex(sim.ensemble[i])
-            if !(hash(sim.ensemble[i][j]) in archived)
-                return false
-            end
-        end
-    end
-    return true
+    sim_hashes = hashes(sim)
+    diff = setdiff(sim_hashes, archived)
+    return isempty(diff)
 end
 
 """
@@ -169,35 +159,22 @@ function archive(sim::Simulation)::Nothing
         return nothing
     end
 
-    # collect hashes and measurements
-    hashes = []
-    measurements = []
-    for i in eachindex(sim.ensemble)
-        for j in eachindex(sim.ensemble[i])
-           push!(hashes, hash(sim.ensemble[i][j]))
-           jldopen("data/measurements/$(hash(sim.ensemble[i][j])).jld2", "r") do file
-               push!(measurements, file["average"])
-           end
+    # collect non-archived hashes
+    archived_hashes = archivedTrajectories()
+    simulation_hashes = hashes(sim)
+    unarchived_hashes = setdiff(simulation_hashes, archived_hashes)
+    measurements = Vector{Measurement}(undef, length(unarchived_hashes))
+    
+    Threads.@threads for i in eachindex(unarchived_hashes)
+        jldopen("data/measurements/$(unarchived_hashes[i]).jld2", "r") do file
+            measurements[i] = file["average"]
         end
     end
-
-    # collect exisiting hashes
-    existing_hashes = []
-    if isfile("data/archive.jld2")
-        jldopen("data/archive.jld2", "r") do file
-            for key in keys(file)
-                push!(existing_hashes, key)
-            end
-        end
-    end
-
-    # remove existing hashes
-    hashes = setdiff(hashes, existing_hashes)
     
     # write to archive
     jldopen("data/archive.jld2", "a+") do file
-        for i in eachindex(hashes)
-            file["$(hashes[i])"] = measurements[i]
+        for i in eachindex(unarchived_hashes)
+            file["$(unarchived_hashes[i])"] = measurements[i]
         end
     end
 
@@ -331,8 +308,6 @@ function metadata()
         println("$(num_orphaned) orphaned trajectories.")
     end
 end
-
-
 
 function printMetadata(sims::Vector{Simulation})::Nothing #custom printing function for simulations vector
     data = String[]
@@ -479,15 +454,8 @@ function cleanup(;interactive::Bool=true)::Nothing
     all_hashes = allTrajectories()
     adopted_hashes = adoptedTrajectories()
     orphaned_hashes = setdiff(all_hashes, adopted_hashes)
-    archived_hashes = archivedTrajectories()
-    archived_measurements = []
-    if isfile("data/archive.jld2")
-        jldopen("data/archive.jld2", "r") do file
-            for key in keys(file)
-                push!(archived_measurements, file[key])
-            end
-        end
-    end
+    
+    Archive = load_archive()
     # add adopted, non-archived trajectories to archive
     for sim in simulations
         for i in eachindex(sim.ensemble)
@@ -582,49 +550,42 @@ missingTrajectories(string::String) = missingTrajectories(loadMetadata(string))
 
 
 function mergeArchives(archive1, archive2)
-    # read all keys and values from archive1
-    keys1 = []
-    values1 = []
-    if isfile(archive1)
-        jldopen(archive1, "r") do file
-            for key in keys(file)
-                push!(keys1, key)
-                push!(values1, file[key])
-            end
-        end
+    println("Create backup? (y/n)")
+    answer = readline()
+    if answer == "y"
+        backupArchive()
     end
-
-    # read all keys and values from archive2
-    keys2 = []
-    values2 = []
-    if isfile(archive2)
-        jldopen(archive2, "r") do file
-            for key in keys(file)
-                push!(keys2, key)
-                push!(values2, file[key])
-            end
-        end
-    end
-
-    # merge the two files
-    merged_keys = union(keys1, keys2)
-    merged_values = []
-    for key in merged_keys
-        if key in keys1
-            push!(merged_values, values1[keys1.==key][1])
-        else
-            push!(merged_values, values2[keys2.==key][1])
-        end
-    end
-
-    # write the merged archive
-    jldopen(archive1, "w") do file
-        for i in eachindex(merged_keys)
-            file[merged_keys[i]] = merged_values[i]
-        end
-    end
+    arch1 = load_archive(archive1)
+    arch2 = load_archive(archive2)
+    merged = merge(arch1, arch2)
+    rm(archive1)
+    rm(archive2)
+    save(archive1, merged)
 end
 
 mergeArchive(path) = mergeArchives("data/archive.jld2", path)
 
-# function backupArchive()
+function backupArchive()
+    if !isdir("data/backup")
+        mkdir("data/backup")
+    end
+    if !isdir("data/backup/archive")
+        mkdir("data/backup/archive")
+    end
+    try
+        if isfile("data/archive.jld2")
+            cp("data/archive.jld2", "data/backup/archive/archive_$(today()).jld2")
+        end
+        @info "Archive backup successful."
+    catch
+        @warn "Archive backup failed."
+    end
+end
+
+function load_archive(path)
+    return load(path)
+end
+
+function load_archive()
+    return load_archive("data/archive.jld2")
+end
