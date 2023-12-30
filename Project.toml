@@ -4,9 +4,6 @@ authors = ["Daniel Simm"]
 version = "1.0.0-DEV"
 
 [deps]
-AppleAccelerate = "13e28ba4-7ad8-5781-acae-3021b1ed3924"
-CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
-CurveFit = "5a033b19-8c74-5913-a970-47c3779ef25c"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
@@ -19,7 +16,6 @@ PkgTemplates = "14b8a8f1-9102-5b29-a752-f990bacb7fe1"
 PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 QuantumClifford = "0525e862-1e90-11e9-3e4d-1b39d7109de1"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-Scaling = "bcf2b353-04f3-4f78-ac0b-80007e341812"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
