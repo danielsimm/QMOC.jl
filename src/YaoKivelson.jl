@@ -70,65 +70,35 @@ function get_operators(trajectory::YaoKivelsonNonorientableTrajectory)
     return vector
 end
 
-function initialise(trajectory::DecoratedHoneycombTrajectory; basis=:Z) :: MixedDestabilizer
+# function initialise_mixed(trajectory::DecoratedHoneycombTrajectory; basis=:Z) :: MixedDestabilizer
+#     L = trajectory.size
+#     if basis == :Z
+#         bilinears = _DHC_ZZ_operators(L)
+#     elseif basis == :X
+#         bilinears = _DHC_XX_operators(L)
+#     elseif basis == :Y
+#         bilinears = _DHC_YY_operators(L)
+#     end
+#     stabs = [bilinears..., _DHC_largeloop_operators(L)..., _DHC_smallloop_operators(L)..., _DHC_wilsonline_operators(L)...]
+#     state = MixedDestabilizer(Stabilizer(stabs))
+#     if (QuantumClifford.trusted_rank(state) != trajectory.nqubits) && (trajectory.verbosity == :debug)
+#         @warn "Initial state is not pure."
+#     end
+#     return state
+# end
+
+function initialise(trajectory::DecoratedHoneycombTrajectory)::Destabilizer
     L = trajectory.size
-    if basis == :Z
-        bilinears = _DHC_ZZ_operators(L)
-    elseif basis == :X
-        bilinears = _DHC_XX_operators(L)
-    elseif basis == :Y
-        bilinears = _DHC_YY_operators(L)
-    end
-    stabs = [bilinears..., _DHC_largeloop_operators(L)..., _DHC_smallloop_operators(L)..., _DHC_wilsonline_operators(L)...]
-    state = MixedDestabilizer(Stabilizer(stabs))
+    inits = [_DHC_ZZ_operators(L)[1:end-1]..., _DHC_largeloop_operators(L)[1:end-1]..., _DHC_smallloop_operators(L)..., _DHC_wilsonline_operators(L)...]
     if (QuantumClifford.trusted_rank(state) != trajectory.nqubits) && (trajectory.verbosity == :debug)
         @warn "Initial state is not pure."
     end
-    return state
+    return Stabilizer(inits)
 end
-
-# function _DHC_randomXXmeasurement!(state::QuantumClifford.MixedDestabilizer)
-#     N = nqubits(state)
-#     L = Int(sqrt(N/6))
-#     Xarr = falses(N)
-#     Zarr = falses(N)
-#     random_site = rand(1:N)
-#     Xarr[random_site] = true
-#     Xarr[_DHC_xneighbour(random_site, L)] = true
-#     project!(state, PauliOperator(0x00, Xarr, Zarr), keep_result=false, phases=false)
-#     return nothing
-# end
-
-# function _DHC_randomYYmeasurement!(state::QuantumClifford.MixedDestabilizer)
-#     N = nqubits(state)
-#     L = Int(sqrt(N/6))
-#     Xarr = falses(N)
-#     Zarr = falses(N)
-#     random_site = rand(1:N)
-#     Xarr[random_site] = true
-#     Zarr[random_site] = true
-#     Xarr[_DHC_yneighbour(random_site, L)] = true
-#     Zarr[_DHC_yneighbour(random_site, L)] = true
-#     project!(state, PauliOperator(0x00, Xarr, Zarr), keep_result=false, phases=false)
-#     return nothing
-# end
-
-# function _DHC_randomZZmeasurement!(state::QuantumClifford.MixedDestabilizer)
-#     N = nqubits(state)
-#     L = Int(sqrt(N/6))
-#     Xarr = falses(N)
-#     Zarr = falses(N)
-#     random_site = rand(1:N)
-#     Zarr[random_site] = true
-#     Zarr[_DHC_zneighbour(random_site, L)] = true
-#     project!(state, PauliOperator(0x00, Xarr, Zarr), keep_result=false, phases=false)
-#     return nothing
-# end
-
 
 ### Dynamics ###
 
-function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivelsonXYZTrajectory, operators)
+function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivelsonXYZTrajectory, operators::Vector{PauliOperator}) ::Nothing
     px = trajectory.params[1]
     py = trajectory.params[2]
     pz = trajectory.params[3]
@@ -146,38 +116,61 @@ function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivel
     return nothing
 end
 
-function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivelsonOrientableTrajectory, operators)
+function circuit!(state::QuantumClifford.AbstractStabilizer, trajectory::YaoKivelsonOrientableTrajectory, operators::Vector{PauliOperator}) ::Nothing
     J = trajectory.params[1] # probability of triangular measurement, orientable: silence triangular Z bond, non-orientable: all bonds
-    K = trajectory.params[2] # probability of hexagonal/Kitaev-style measurement
+    # K = trajectory.params[2] # probability of hexagonal/Kitaev-style measurement
     for subtime in 1:trajectory.nqubits
-        p = rand()
-        if p < J
+        if rand() < J
             project!(state, operators[rand(1:4*trajectory.size^2)], keep_result=false, phases=false)
         else
             project!(state, operators[4*trajectory.size^2+rand(1:3*trajectory.size^2)], keep_result=false, phases=false)
         end
-
     end
+    return nothing
 end
 
-function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivelsonNonorientableTrajectory, operators)
+function circuit!(state::QuantumClifford.AbstractStabilizer, trajectory::YaoKivelsonNonorientableTrajectory, operators::Vector{PauliOperator}) ::Nothing
     J = trajectory.params[1] # probability of triangular measurement, orientable: silence triangular Z bond, non-orientable: all bonds
-    K = trajectory.params[2] # probability of hexagonal/Kitaev-style measurement
+    # K = trajectory.params[2] # probability of hexagonal/Kitaev-style measurement
     for subtime in 1:trajectory.nqubits
-        p = rand()
-        if p < J
+        if rand() < J
             project!(state, operators[rand(1:6*trajectory.size^2)], keep_result=false, phases=false)
         else
             project!(state, operators[6*trajectory.size^2+rand(1:3*trajectory.size^2)], keep_result=false, phases=false)
         end
-
     end
+    return nothing
 end
 
 
 ### Observables ###
 
-function entropy(state::QuantumClifford.MixedDestabilizer, trajectory::DecoratedHoneycombTrajectory)
+"""
+    DHC_snake(L)
+
+Return a vector of sites in the order of the snake pattern.
+"""
+function DHC_snake(L)
+    sites = zeros(Int, 6*L^2)
+    rows = [((i-1)*6*L)+1:i*6*L for i in 1:L]
+    for r in eachindex(rows)
+        if iseven(r)
+            sites[rows[r]] = rows[r][end:-1:1]
+        else
+            sites[rows[r]] = rows[r]
+        end
+    end
+    return sites
+end
+
+function new_entropy(state, trajectory::DecoratedHoneycombTrajectory)
+    stab = copy(stabilizerview(state))
+    L = trajectory.size
+    QuantumClifford.permute!(stab, DHC_snake(L))
+end
+
+
+function entropy(state::QuantumClifford.AbstractStabilizer, trajectory::DecoratedHoneycombTrajectory)
     algo=Val(:rref)
     L = trajectory.size
     EE = zeros(L+1)
@@ -196,7 +189,7 @@ function subsystem_labels(trajectory::DecoratedHoneycombTrajectory)
     return subsystems
 end
 
-function tmi(state::QuantumClifford.MixedDestabilizer, trajectory::DecoratedHoneycombTrajectory)
+function tmi(state::QuantumClifford.AbstractStabilizer, trajectory::DecoratedHoneycombTrajectory)
     algo=Val(:rref)
     L = trajectory.size
     if mod(L, 4) != 0
@@ -213,4 +206,20 @@ function tmi(state::QuantumClifford.MixedDestabilizer, trajectory::DecoratedHone
     SAC = entanglement_entropy(state, union(A,C), algo)
     SABC = entanglement_entropy(state, union(A, B, C), algo)
     return SA + SB + SC - SAB - SBC - SAC + SABC
+end
+
+function YaoKivelsonOrientableTest(L)
+    return trajectory(
+        :YaoKivelsonOrientable,
+        L,
+        6*L^2,
+        "YK_orientable_test",
+        [0.5, 0.5],
+        false,
+        :debug,
+        1,
+        3*L,
+        1,
+        1
+    )
 end
