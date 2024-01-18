@@ -26,13 +26,5 @@ Manifest.toml
 # macOS Finder helpers
 *.DS_Store
 
-data/
-
 .vscode
-*.pdf
-
-*.jld2
-
-scalingtestfile
-
-analysis/
+data/
