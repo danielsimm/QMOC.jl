@@ -2,6 +2,7 @@ using CairoMakie
 using Colors
 using ColorSchemes
 using GeometryBasics
+using QuantumClifford
 using QMOC
 """
     parameter_legend(parameters)
@@ -318,6 +319,50 @@ function DHC_plot_lattice(lattice::Vector{QMOC.DecoratedHoneycombLatticeSite}, h
             translate!(point,0,0,2)
             text = text!(x, y, text = string, color=:black, align=(:center, :center))
             translate!(text,0,0,3)
+        end
+    end
+    hidedecorations!(ax)
+    hidespines!(ax)
+    return fig
+end
+
+function plot_lattice(lattice::QMOC.DecoratedHoneycombLattice; label=false)
+    background = RGBf(236/256, 240/256, 241/256)
+    latticeblack = RGBf(28/256, 40/256, 51/256)
+    latticered = RGBf(231/256, 76/256, 60/256)
+    latticegreen = RGBf(33/256, 199/256, 135/256)
+    latticeblue = RGBf(52/256, 152/256, 219/256)
+    fig = Figure(resolution = (800, 800), backgroundcolor = (:white, 0.0))
+    ax = Axis(fig[1, 1], aspect = DataAspect(), backgroundcolor = (:white, 0.0))
+    L = lattice.L
+    sites = lattice.sites
+    # draw sites
+    for i in eachindex(sites)
+        x = sites[i].cartesianx
+        y = sites[i].cartesiany
+        point = scatter!(ax, x, y, markersize = 80/L, color=latticeblack)
+        translate!(point,0,0,1)
+        if label
+            text = text!(x, y, text = "$(sites[i].index)", color=:white, align=(:center, :center))
+            translate!(text,0,0,2)
+        end
+    end
+    # draw lattice
+    for i in eachindex(sites)
+        x = sites[i].cartesianx
+        y = sites[i].cartesiany
+        xneighbourx = sites[sites[i].xneighbour].cartesianx
+        xneighboury = sites[sites[i].xneighbour].cartesiany
+        yneighbourx = sites[sites[i].yneighbour].cartesianx
+        yneighboury = sites[sites[i].yneighbour].cartesiany
+        zneighbourx = sites[sites[i].zneighbour].cartesianx
+        zneighboury = sites[sites[i].zneighbour].cartesiany
+        lines!(ax, [x, xneighbourx], [y, xneighboury], color=latticeblack, linewidth=1.0)
+        if !(abs(x - yneighbourx) > 1.1)
+            lines!(ax, [x, yneighbourx], [y, yneighboury], color=latticeblack, linewidth=1.0)
+        end
+        if !(abs(y - zneighboury) > 1.5)
+            lines!(ax, [x, zneighbourx], [y, zneighboury], color=latticeblack, linewidth=1.0)
         end
     end
     hidedecorations!(ax)
