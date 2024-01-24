@@ -87,13 +87,14 @@ end
 #     return state
 # end
 
-function initialise(trajectory::DecoratedHoneycombTrajectory)::Destabilizer
+function initialise(trajectory::DecoratedHoneycombTrajectory)
     L = trajectory.size
     inits = [_DHC_ZZ_operators(L)[1:end-1]..., _DHC_largeloop_operators(L)[1:end-1]..., _DHC_smallloop_operators(L)..., _DHC_wilsonline_operators(L)...]
+    state = Stabilizer(inits)
     if (QuantumClifford.trusted_rank(state) != trajectory.nqubits) && (trajectory.verbosity == :debug)
         @warn "Initial state is not pure."
     end
-    return Stabilizer(inits)
+    return state
 end
 
 ### Dynamics ###
