@@ -28,3 +28,5 @@ Manifest.toml
 
 .vscode
 data/
+
+analysis/post-process.jl
