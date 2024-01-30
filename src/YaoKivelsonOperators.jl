@@ -53,7 +53,7 @@ function _DHC_wilsonline_sites(L)
     loop2[1] = 1
     for i in 2:6*L
         if iseven(i)
-            loop2[i] = _DHC_xneighbour(loop2[i-1], L)
+            loop2[i] = _DHC_zneighbour(loop2[i-1], L)
         else
             loop2[i] = _DHC_yneighbour(loop2[i-1], L)
         end
@@ -137,7 +137,7 @@ function _DHC_wilsonline_operators(L) :: Vector{PauliOperator}
     Zarr = falses(N)
     for i in eachindex(loop2)
         site = loop2[i]
-        Zarr[site] = true
+        Xarr[site] = true
     end
     operators[2] = PauliOperator(0x00, Xarr, Zarr)
     return operators

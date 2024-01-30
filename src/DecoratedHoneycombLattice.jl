@@ -57,27 +57,32 @@ function _DHC_zneighbour(globalindex, L)
     end
 end
 
-function DHC_subsystem(L, ls)
-    # cut along y bonds
-    nqubits = 6*L^2
-    subsystem = []
-    for i in ls
-        A = (6*(i-1) + 1):6*L:nqubits
-        B = (6*(i-1) + 2):6*L:nqubits
-        C = (6*(i-1) + 3):6*L:nqubits
-        D = (6*(i-1) + 4):6*L:nqubits
-        E = (6*(i-1) + 5):6*L:nqubits
-        F = (6*(i-1) + 6):6*L:nqubits
-        push!(subsystem, A)
-        push!(subsystem, B)
-        push!(subsystem, C)
-        push!(subsystem, D)
-        push!(subsystem, E)
-        push!(subsystem, F)
-    end
-    return sort(union(subsystem...))
-end
+# function DHC_subsystem(L, ls)
+#     # cut along y bonds
+#     nqubits = 6*L^2
+#     subsystem = []
+#     for i in ls
+#         A = (6*(i-1) + 1):6*L:nqubits
+#         B = (6*(i-1) + 2):6*L:nqubits
+#         C = (6*(i-1) + 3):6*L:nqubits
+#         D = (6*(i-1) + 4):6*L:nqubits
+#         E = (6*(i-1) + 5):6*L:nqubits
+#         F = (6*(i-1) + 6):6*L:nqubits
+#         push!(subsystem, A)
+#         push!(subsystem, B)
+#         push!(subsystem, C)
+#         push!(subsystem, D)
+#         push!(subsystem, E)
+#         push!(subsystem, F)
+#     end
+#     return sort(union(subsystem...))
+# end
 
+function DHC_subsystem(L, rows)
+    start = minimum(rows)
+    stop = maximum(rows)
+    return ((start-1)*6L)+1:stop*6L
+end
 # function DHC_subsystem(L, ls)
 #     # cut along Z bonds
 #     sites = []

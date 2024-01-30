@@ -89,11 +89,15 @@ end
 
 function initialise(trajectory::DecoratedHoneycombTrajectory)::Destabilizer
     L = trajectory.size
-    inits = [_DHC_ZZ_operators(L)[1:end-1]..., _DHC_largeloop_operators(L)[1:end-1]..., _DHC_smallloop_operators(L)..., _DHC_wilsonline_operators(L)...]
-    if (QuantumClifford.trusted_rank(state) != trajectory.nqubits) && (trajectory.verbosity == :debug)
-        @warn "Initial state is not pure."
+    stab = QuantumClifford.MixedDestabilizer(QuantumClifford.Stabilizer(one(QuantumClifford.Tableau, 6*L^2; basis=:X)))
+    largeloops = _DHC_largeloop_operators(L)
+    smallloops = _DHC_smallloop_operators(L)
+    wilsonlines = _DHC_wilsonline_operators(L)
+    for op in [largeloops..., smallloops..., wilsonlines...]
+        QuantumClifford.project!(stab, op, phases=false)
     end
-    return Stabilizer(inits)
+    @assert QuantumClifford.trusted_rank(stab) == 6*L^2
+    return stab
 end
 
 ### Dynamics ###
@@ -174,9 +178,9 @@ function entropy(state::QuantumClifford.AbstractStabilizer, trajectory::Decorate
     algo=Val(:rref)
     L = trajectory.size
     EE = zeros(L+1)
-    for i in 1:L
-        EE[i+1] = entanglement_entropy(state, DHC_subsystem(L, 1:i), algo)
-    end
+    # for i in 1:L
+    #     EE[i+1] = entanglement_entropy(state, DHC_subsystem(L, 1:i), algo)
+    # end
     return EE
 end
 
