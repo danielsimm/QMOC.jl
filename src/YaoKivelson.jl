@@ -87,7 +87,7 @@ end
 #     return state
 # end
 
-function initialise(trajectory::DecoratedHoneycombTrajectory)::Destabilizer
+function initialise(trajectory::DecoratedHoneycombTrajectory)
     L = trajectory.size
     stab = QuantumClifford.MixedDestabilizer(QuantumClifford.Stabilizer(one(QuantumClifford.Tableau, 6*L^2; basis=:X)))
     largeloops = _DHC_largeloop_operators(L)
@@ -212,13 +212,13 @@ function tmi(state::QuantumClifford.AbstractStabilizer, trajectory::DecoratedHon
     return SA + SB + SC - SAB - SBC - SAC + SABC
 end
 
-function YaoKivelsonOrientableTest(L)
+function YaoKivelsonTest(L, mode, J)
     return trajectory(
-        :YaoKivelsonOrientable,
+        mode,
         L,
         6*L^2,
-        "YK_orientable_test",
-        [0.5, 0.5],
+        "YK_$(mode)_test",
+        [J, 1-J],
         false,
         :debug,
         1,
