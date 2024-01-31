@@ -8,8 +8,10 @@ function archivedTrajectories() ::Vector{UInt}
         ks = jldopen("data/archive.jld2", "r") do file
             keys(file)
         end
+        return parse.(UInt, ks)
+    else
+        return Vector{UInt}(undef, 0)
     end
-    return parse.(UInt, ks)
 end
 
 function hashes(sim::Simulation)
