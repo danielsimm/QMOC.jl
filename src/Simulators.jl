@@ -152,9 +152,13 @@ function simulate(sim::Simulation)
     if rank == root
         # randomly distribute indices
         indices = randperm(ntrajectories)
-        part = [indices[i:nworkers:end] for i in 1:nworkers]
+        part = [indices[i:(nworkers+1):end] for i in 1:(nworkers+1)]
         for i in 1:nworkers
-            MPI.send(part[i],comm; dest=i)
+            MPI.send(part[i+1],comm; dest=i)
+        end
+        todo = part[1]
+        for i in todo
+            run(trajectories[i])
         end
     else
         todo = MPI.recv(comm)
@@ -163,7 +167,7 @@ function simulate(sim::Simulation)
         end
     end
     if rank == root
-        println("Dispatched to $(nworkers) MPI procs. Waiting for results...")
+        println("Dispatched to $(nworkers +1) MPI procs. Waiting for results...")
     end
     MPI.Barrier(comm)
     if rank == root
