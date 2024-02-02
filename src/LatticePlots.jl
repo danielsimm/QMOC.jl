@@ -213,7 +213,7 @@ function DHC_plot_lattice(lattice::Vector{QMOC.DecoratedHoneycombLatticeSite}, h
         point = scatter!(ax, x, y, markersize = 80/L, color=latticeblack)
         translate!(point,0,0,1)
         if label
-            text = text!(x, y, text = "$(lattice[i].lindex)", color=:white, align=(:center, :center))
+            text = text!(x, y, text = "$(lattice[i].index)", color=:white, align=(:center, :center))
             translate!(text,0,0,2)
         end
     end
@@ -258,7 +258,7 @@ function DHC_plot_lattice(lattice::Vector{QMOC.DecoratedHoneycombLatticeSite}, h
         point = scatter!(ax, x, y, markersize = 80/L, color=latticeblack)
         translate!(point,0,0,1)
         if label
-            text = text!(x, y, text = "$(lattice[i].lindex)", color=:white, align=(:center, :center))
+            text = text!(x, y, text = "$(lattice[i].index)", color=:white, align=(:center, :center))
             translate!(text,0,0,2)
         end
     end
@@ -305,7 +305,7 @@ function DHC_plot_lattice(lattice::Vector{QMOC.DecoratedHoneycombLatticeSite}, h
         point = scatter!(ax, x, y, markersize = 80/L, color=latticeblack)
         translate!(point,0,0,1)
         if label
-            text = text!(x, y, text = "$(lattice[i].lindex)", color=:white, align=(:center, :center))
+            text = text!(x, y, text = "$(lattice[i].index)", color=:white, align=(:center, :center))
             translate!(text,0,0,2)
         end
     end
@@ -370,7 +370,7 @@ function plot_lattice(lattice::QMOC.DecoratedHoneycombLattice; label=false)
     return fig
 end
 
-function plot_operators(lattice::QMOC.DecoratedHoneycombLattice, ops::Vector{QuantumClifford.PauliOperator}; label=false)
+function plot_operators(lattice::QMOC.DecoratedHoneycombLattice, ops; label=false)
     background = RGBf(236/256, 240/256, 241/256)
     latticeblack = RGBf(28/256, 40/256, 51/256)
     latticered = RGBf(231/256, 76/256, 60/256)
@@ -387,7 +387,7 @@ function plot_operators(lattice::QMOC.DecoratedHoneycombLattice, ops::Vector{Qua
         point = scatter!(ax, x, y, markersize = 80/L, color=latticeblack)
         translate!(point,0,0,1)
         if label
-            text = text!(x, y, text = "$(sites[i].lindex)", color=:white, align=(:center, :center))
+            text = text!(x, y, text = "$(sites[i].index)", color=:white, align=(:center, :center))
             translate!(text,0,0,2)
         end
     end

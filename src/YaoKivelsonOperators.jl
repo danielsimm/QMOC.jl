@@ -102,6 +102,40 @@ function _DHC_largeloop_operators(L) :: Vector{PauliOperator}
     return operators
 end
 
+# function _DHC_largeloop_operators(L) :: Vector{PauliOperator}
+#         loops = _DHC_largeloop_sites(L)
+#         N = 6*L^2
+#         operators = Vector{PauliOperator}(undef, L^2)
+#         for (i, loop) in enumerate(loops)
+#             Xarr = falses(N)
+#             Zarr = falses(N)
+    
+#             Zarr[loop[1]] = true
+#             Zarr[loop[2]] = true
+    
+#             Zarr[loop[3]] = true
+#             Xarr[loop[3]] = true
+#             Zarr[loop[4]] = true
+#             Xarr[loop[4]] = true
+    
+#             Xarr[loop[5]] = true    
+#             Xarr[loop[6]] = true
+    
+#             Zarr[loop[7]] = true
+#             Zarr[loop[8]] = true
+    
+#             Zarr[loop[9]] = true
+#             Xarr[loop[9]] = true
+#             Zarr[loop[10]] = true
+#             Xarr[loop[10]] = true
+    
+#             Xarr[loop[11]] = true    
+#             Xarr[loop[12]] = true
+#            operators[i] = PauliOperator(0x00, Xarr, Zarr)
+#         end
+#         return operators
+#     end
+
 function _DHC_smallloop_operators(L) :: Vector{PauliOperator}
     loops = _DHC_smallloop_sites(L)
     N = 6*L^2
