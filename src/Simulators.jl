@@ -86,7 +86,7 @@ function _number_of_qubits(type::Symbol, size::Int) ::Int
     elseif type in [:Kekule, :Kitaev]
         return 2 * size^2
     elseif type in [:YaoKivelsonXYZ, :YaoKivelsonNonorientable, :YaoKivelsonOrientable]
-        return 3 * size^2
+        return 6 * size^2
     else
         error("Type $(type) not implemented.")
     end
