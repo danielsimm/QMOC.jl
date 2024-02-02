@@ -227,3 +227,19 @@ function YaoKivelsonTest(L, mode, J)
         1
     )
 end
+
+function YaoKivelsonNonorientableTest(L)
+    return trajectory(
+        :YaoKivelsonNonorientable,
+        L,
+        6*L^2,
+        "YK_nonorientable_test",
+        [1-0.654, 0.654],
+        false,
+        :debug,
+        1,
+        3*L,
+        1,
+        1
+    )
+end
