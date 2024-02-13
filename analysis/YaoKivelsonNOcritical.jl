@@ -44,7 +44,7 @@ I3_48_err = Float64.(I3_48_err)./sqrt(100)
 I3_60_err = Float64.(I3_60_err)./sqrt(100)
 # I3_72_err = Float64.(I3_72_err)
 end
-I3_60
+
 begin
 x = Float64.([params[i][2] for i in eachindex(params)])
 data =[I3_12 I3_24 I3_28 I3_32 I3_36 I3_40 I3_48 I3_60]
@@ -59,6 +59,17 @@ for i in eachindex(err)
     end
 end
 end
+K = x
+J = 1 .-x
+Ls = [12, 24, 28, 32, 36, 40, 48, 60]
+
+using DelimitedFiles
+for (i, L) in enumerate(Ls)
+    to_file = [J K data[:, i] err[:, i]]
+    writedlm("../Master/plots/yao kivelson clifford first/nonorientable/$(L).tmi", to_file)
+end
+
+
 0.6537/(1-0.6537)
 sp = ScalingProblem(x, data, err, [12, 24, 28, 32, 36, 40, 48, 60];
 sf=ScalingFunction(:x),

@@ -16,8 +16,8 @@ function write_out(name)
 end
 
 sims = [
-    "nonorientable_scaling_40",
-    "orientable_scaling_40",
+    "nonorientable_scaling_48",
+    "orientable_scaling_48",
 ]
 
 write_out.(sims)

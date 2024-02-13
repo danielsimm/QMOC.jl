@@ -1,3 +1,4 @@
+
 using QMOC
 using CairoMakie
 using ColorSchemes
@@ -45,10 +46,23 @@ I3_60_err = Float64.(I3_60_err)./sqrt(100)
 end
 
 
+params, I3_60 =evaluate("YaoKivelsonOrientableCriticalBetter_60", :I3)
+J = [params[i][1] for i in eachindex(params)]
+K = [params[i][2] for i in eachindex(params)]
+ΔI3_60 = evaluate("YaoKivelsonOrientableCriticalBetter_60", :ΔI3)[2]
+ΔI3_60 = Float64.(ΔI3_60)./sqrt(100)
+perm = sortperm(K)
+J = J[perm]
+K = K[perm]
+I3_60 = I3_60[perm]
+ΔI3_60 = ΔI3_60[perm]
+to_file = [J K I3_60 ΔI3_60]
+writedlm("../Master/plots/yao kivelson clifford first/orientable/60.tmi", to_file)
+
 begin
     x = Float64.([params[i][2] for i in eachindex(params)])
-    data =[I3_12 I3_24 I3_28 I3_32 I3_36 I3_40 I3_48]
-    err = [I3_12_err I3_24_err I3_28_err I3_32_err I3_36_err I3_40_err I3_48_err]
+    data =[I3_12 I3_24 I3_28 I3_32 I3_36 I3_40 I3_48 I3_60]
+    err = [I3_12_err I3_24_err I3_28_err I3_32_err I3_36_err I3_40_err I3_48_err I3_60_err]
     for i in eachindex(err)
         if err[i] == 0
             err[i] = 1e-10
@@ -60,20 +74,27 @@ begin
     err = err[perm, :]
 end
 
-<<<<<<< HEAD
-sp = ScalingProblem(x, data[:, 1:end], [12, 24, 28, 32, 36, 40, 60], algorithm=:spline;
-=======
-sp = ScalingProblem(x, data[:, 3:end-1], [28, 32, 36, 40], algorithm=:spline;
->>>>>>> aefab65d74a27b27cac397bf208b51f2dc404347
+K = x
+J = 1 .-x
+Ls = [12, 24, 28, 32, 36, 40, 48, 60]
+
+ # J K I ΔI
+using DelimitedFiles
+for (i, L) in enumerate(Ls)
+    to_file = [J K data[:, i] err[:, i]]
+    writedlm("../Master/plots/yao kivelson clifford first/orientable/$(L).tmi", to_file)
+end
+
+
+sp = ScalingProblem(x, data[:, 2:end], [24, 28, 32, 36, 40, 48], algorithm=:spline;
     sf=ScalingFunction(:x),
-    dx=[-2.5,2.5],
+    dx=[0,2.5],
     p_space = [0.5:0.1:0.7, 0.9:0.001:1.1],
     #verbose=true,
     error=true
 )
 
 p_space, residuals = Scaling.residual_landscapes(sp, p_space=[0.5:0.1:0.7, 0.9:0.001:1.1], algorithm=:spline)
-<<<<<<< HEAD
 # with_theme(merge(theme_black(), theme_latexfonts())) do
 #     fig = Figure(resolution = (400, 250), backgroundcolor = (:black, 0.0), textcolor=:white, axiscolor=:white, color=:white)
 #     ax = Axis(fig[1, 1], xlabel = L"\nu", ylabel = "fit error", backgroundcolor=(:black,0.0))
@@ -83,17 +104,6 @@ p_space, residuals = Scaling.residual_landscapes(sp, p_space=[0.5:0.1:0.7, 0.9:0
 #     scatterlines!(ax, p_space[2], residuals[2], markersize = ms, color=:white)
 #     save("YaoKivelsonOrientable_collapse_residuals.pdf", fig)
 # end
-=======
-with_theme(merge(theme_black(), theme_latexfonts())) do
-    fig = Figure(resolution = (400, 250), backgroundcolor = (:black, 0.0), textcolor=:white, axiscolor=:white, color=:white)
-    ax = Axis(fig[1, 1], xlabel = L"\nu", ylabel = "fit error", backgroundcolor=(:black,0.0))
-    lw = 1.8
-    err_lw = 1.1
-    ms = 3
-    scatterlines!(ax, p_space[2], residuals[2], markersize = ms, color=:white)
-    save("YaoKivelsonOrientable_collapse_residuals.pdf", fig)
-end
->>>>>>> aefab65d74a27b27cac397bf208b51f2dc404347
 
 fig, ax = scatter(p_space[2], residuals[2])
 vlines!(ax, [sp.optimal_ps[2]], color=:red)
@@ -137,9 +147,5 @@ p_48 = scatterlines!(ax, scaling(x, 48, nu), I3_48, linewidth = lw, markersize =
 errorbars!(ax, scaling(x, 48, nu), I3_48, I3_48_err, color=colors[7], linewidth=err_lw)
 Legend(fig[1,2], reverse([p_12, p_24, p_28, p_32, p_36, p_40, p_48]), reverse(["L=12", "L=24", "L=28", "L=32", "L=36", "L=40", "L=48"]), bgcolor=(:black, 0.0))
 fig
-<<<<<<< HEAD
 # save("YaoKivelsonOrientable_uncollapse.pdf", fig)
-=======
-save("YaoKivelsonOrientable_uncollapse.pdf", fig)
->>>>>>> aefab65d74a27b27cac397bf208b51f2dc404347
 end
