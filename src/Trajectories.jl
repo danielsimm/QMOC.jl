@@ -185,6 +185,56 @@ function run(trajectory::Nothing)
     return nothing
 end
 
+function run(
+    circuit::Circuit, 
+    equilibration_steps::Int,
+    samples::Int,
+    subsamples::Int,
+    subsample_interval::Int;
+    checkpoints::Bool=false,
+    verbosity::Symbol=:info)
+
+    if !isdir("data")
+        mkdir("data")
+    end
+    if !isdir("data/measurements")
+        mkdir("data/measurements")
+    end
+    if !isdir("data/checkpoints")
+        mkdir("data/checkpoints")
+    end
+
+    state = initialize(circuit)
+    operators = circuit.operators
+    weights = circuit.weights
+    observer = circuit.observer
+
+    Threads.@threads for s in 1:samples
+
+        ### Thermalization
+        for _ in 1:equilibration_steps
+            for __ in 1:circuit.nqubits
+                QuantumClifford.project!(state, wsample(operators, weights), keep_result=false, phases=false)
+            end
+        end
+
+        ret_types = Base.return_types(observer)
+        if length(ret_types) == 1
+            this_res = Vector{ret_types[1]}(undef, subsamples)
+        else
+            this_res = Vector{Any}(undef, subsamples)
+        end
+
+        ### Measurement
+        for i in 1:subsamples
+            for _ in 1:subsample_interval
+                for __ in 1:circuit.nqubits
+                    QuantumClifford.project!(state, wsample(operators, weights), keep_result=false, phases=false)
+                end
+            end
+            this_res[i] = observer(state)
+        end
+end
 function run(trajectory::Trajectory)
     if !isdir("data")
         mkdir("data")
