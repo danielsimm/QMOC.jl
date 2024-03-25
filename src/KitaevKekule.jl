@@ -96,6 +96,22 @@ function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::KekuleTr
     return nothing
 end
 
+function apply!(stabilizer, c, operators)
+    p1 = c.params[1]
+    p2 = c.params[2] + p1
+    N = c.size^2
+    for subtime in 1:c.nqubits
+        p = rand()
+        if p < p1
+            project!(stabilizer, operators[1, rand(1:N)], keep_result=false, phases=false)
+        elseif p < p2
+            project!(stabilizer, operators[2, rand(1:N)], keep_result=false, phases=false)
+        else
+            project!(stabilizer, operators[3, rand(1:N)], keep_result=false, phases=false)
+        end
+    end
+end
+
 
 ### Observables ###
 

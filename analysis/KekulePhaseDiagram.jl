@@ -3,7 +3,7 @@ using CairoMakie
 using GeometryBasics
 using ColorSchemes
 set_theme!()
-CairoMakie.activate!(type = "svg", pt_per_unit = 1.3)
+CairoMakie.activate!(type = "pdf", pt_per_unit = 1.0)
 
 
 with_theme(theme_latexfonts()) do
@@ -43,6 +43,35 @@ scatter!(ax, [transition1_xy, transition2_xy], color=:orange, markersize=20)
 hidespines!(ax)
 hidedecorations!(ax)
 fig
-save("KekulePhaseDiagram.pdf", fig)
+#save("KekulePhaseDiagram.pdf", fig)
 end
+params, I3 = evaluate("KekuleWedge20_L24", :I3)
+params, I3 = QMOC.symmetry_data_extension(params, I3)
+unique_indices = unique(i -> params[i], eachindex(params))
+# params = QMOC.parametric_to_cartesian.(params)
+critical_px = 0.625
+critical_pz = 0.096
+transition_point1 = [critical_px, (1-critical_px)/2, (1-critical_px)/2]
+transition_point2 = [(1-critical_pz)/2, (1-critical_pz)/2, critical_pz]
+transition1_xy = Point2f(QMOC.parametric_to_cartesian(transition_point1))
+transition2_xy = Point2f(QMOC.parametric_to_cartesian(transition_point2))
+params = params[unique_indices]
+I3 = I3[unique_indices]
+I3 = Float64.(I3)
+x = [params[i][1] for i in eachindex(params)]
+y = [params[i][2] for i in eachindex(params)]
+params
+data = [x y I3]
 
+data = reduce(vcat, ([[params[i][1] params[i][2] params[i][3] I3[i]] for i in eachindex(params)]))
+
+using DelimitedFiles
+writedlm("../Master/plots/kekule/phase diagram/KekulePhaseDiagramData.dat", data)
+
+append!(names, data)
+
+# count unique x values
+xvals = unique(x)
+unique(y)
+
+delaun

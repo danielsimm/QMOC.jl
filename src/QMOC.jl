@@ -5,6 +5,7 @@ using LinearAlgebra
 using QuantumClifford
 using Statistics
 using JLD2
+using DelimitedFiles
 using PrettyTables
 using MPI
 using Random
@@ -12,13 +13,13 @@ using Random
 # import Distributed: @distributed, @everywhere, fetch, myid, pmap, remotecall
 import JLD2: jldopen, load
 
-
+include("circuits.jl")
 include("Trajectories.jl")
 include("Geometry.jl")
 include("KitaevKekule.jl")
 include("YaoKivelson.jl")
 include("Chain.jl")
-include("Parameters.jl")
+include("parameter_toolbox.jl")
 include("Simulators.jl")
 include("Analysis.jl")
 
