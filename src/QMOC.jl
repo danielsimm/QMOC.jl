@@ -11,7 +11,7 @@ using MPI
 using Random
 
 # import Distributed: @distributed, @everywhere, fetch, myid, pmap, remotecall
-import JLD2: jldopen, load
+import JLD2: jldopen, load, jldsave
 
 include("circuits.jl")
 include("Trajectories.jl")
@@ -22,6 +22,7 @@ include("Chain.jl")
 include("parameter_toolbox.jl")
 include("Simulators.jl")
 include("Analysis.jl")
+include("thermalgen.jl")
 
 if !isdir("data")
     mkdir("data")

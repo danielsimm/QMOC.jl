@@ -2,6 +2,11 @@ import Base: hash
 import Graphs
 import SimpleWeightedGraphs as swg
 
+abstract type AbstractCircuit end
+abstract type DecoratedHoneycombCircuit <: AbstractCircuit end
+abstract type HoneycombCircuit <: AbstractCircuit end
+abstract type ChainCircuit <: AbstractCircuit end
+
 """
     hash(c::AbstractCircuit) -> UInt
 
@@ -10,12 +15,6 @@ import SimpleWeightedGraphs as swg
 function hash(c::AbstractCircuit)
     return hash("$(typeof(c))_$(c.size)_$(c.params)")
 end
-
-abstract type AbstractCircuit end
-abstract type DecoratedHoneycombCircuit <: AbstractCircuit end
-abstract type HoneycombCircuit <: AbstractCircuit end
-abstract type ChainCircuit <: AbstractCircuit end
-
 struct GenericCircuit <: AbstractCircuit
     size::Int
     dims::Int

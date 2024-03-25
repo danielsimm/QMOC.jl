@@ -39,6 +39,14 @@ function get_operators(trajectory::KitaevTrajectory)
     return matrix
 end
 
+function get_operators(c::KitaevCircuit)
+    matrix = Matrix{PauliOperator}(undef, 3, c.size^2)
+    matrix[1, :] .= _HC_XX_operators(c.size)
+    matrix[2, :] .= _HC_YY_operators(c.size)
+    matrix[3, :] .= _HC_ZZ_operators(c.size)
+    return matrix
+end
+
 function get_operators(trajectory::KekuleTrajectory)
     matrix = Matrix{PauliOperator}(undef, 3, trajectory.size^2)
     matrix[1, :] .= _HC_red_operators(trajectory.size)
@@ -55,6 +63,16 @@ function initialise(trajectory::HoneycombTrajectory)
         @warn "Initial state is not pure."
     end
     return MixedDestabilizer(stabiliser)
+end
+
+function initial_state(c::KitaevCircuit)
+    L = c.size
+    stabs = [_HC_ZZ_operators(L)[1:L^2-1]..., _HC_WilsonPlaquette_operators(L)..., _HC_WilsonLoops(L)...]
+    stab = Stabilizer(stabs)
+    if QuantumClifford.trusted_rank(stab) != 2*L^2
+        @warn "Initial state is not pure."
+    end
+    return MixedDestabilizer(stab)
 end
 
 
@@ -162,6 +180,24 @@ end
 
 function tmi(state::QuantumClifford.MixedDestabilizer, trajectory::HoneycombTrajectory; algo=Val(:rref))
     L = trajectory.size
+    if mod(L, 4) != 0
+        @info "L must be a multiple of 4, but is $(L). Tripartite mutual information is ill-defined."
+    end
+    A = HC_subsystem(L, 1:Int(L/4))
+    B = HC_subsystem(L, Int(L/4)+1:Int(L/2))
+    C = HC_subsystem(L, Int(L/2)+1:Int(3L/4))
+    SA = entanglement_entropy(state, A, algo)
+    SB = entanglement_entropy(state, B, algo)
+    SC = entanglement_entropy(state, C, algo)
+    SAB = entanglement_entropy(state, union(A,B), algo)
+    SBC = entanglement_entropy(state, union(B,C), algo)
+    SAC = entanglement_entropy(state, union(A,C), algo)
+    SABC = entanglement_entropy(state, union(A, B, C), algo)
+    return SA + SB + SC - SAB - SBC - SAC + SABC
+end
+
+function tmi(state, c::HoneycombCircuit; algo=Val(:rref))
+    L = c.size
     if mod(L, 4) != 0
         @info "L must be a multiple of 4, but is $(L). Tripartite mutual information is ill-defined."
     end
