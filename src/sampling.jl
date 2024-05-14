@@ -17,7 +17,7 @@ function sample_I3(circuit, thermalization_time, n_samples, sample_distance; fil
 		end
 		I3 += mean(tmi(state, circuit))
 	end
-	I3 = I3 / sample_distance
+	I3 = I3 / n_samples
 	if filename != nothing
 		jldsave("$(filename)"; I3 = I3)
 	else
