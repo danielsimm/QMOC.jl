@@ -4,8 +4,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=128
 #SBATCH -p normal
-#SBATCH -J "kitaev_span_128"
-#SBATCH --time=02:00:00
+#SBATCH -J "QMOC_KitaevScan12"
+#SBATCH --time=00:20:00
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=simm@thp.uni-koeln.de
 
