@@ -128,6 +128,12 @@ function HC_subsystem(L, ls)
     return sort(qubits)
 end
 
+
+
+# function subsystem(lattice::HoneycombLattice, ls)
+#     return HC_subsystem(lattice.L, ls)
+# end
+
 function _HC_cartesian_position(i::Int64, L::Int64)
     if i == 1
         return [0, 0]
@@ -155,26 +161,49 @@ struct HoneycombLatticeSite
     cartesiany::Float64
 end
 
+
 struct HoneycombLattice <: Lattice
     L::Int
     nqubits::Int
     sites::Vector{HoneycombLatticeSite}
+    function HoneycombLattice(L) :: HoneycombLattice
+        sites = Vector{HoneycombLatticeSite}(undef, 2*L^2)
+        for i in eachindex(sites)
+            sites[i] = HoneycombLatticeSite(
+                i, 
+                _HC_xneighbour(i, L), 
+                _HC_yneighbour(i, L), 
+                _HC_zneighbour(i, L), 
+                _HC_redneighbour(i, L)[1], 
+                _HC_greenneighbour(i, L)[1], 
+                _HC_blueneighbour(i, L)[1], 
+                _HC_cartesian_position(i, L)[1],
+                _HC_cartesian_position(i, L)[2]
+            )
+        end
+        return new(L, 2*L^2, sites)
+    end
 end
 
-function honeycomblattice(L) :: HoneycombLattice
-    sites = Vector{HoneycombLatticeSite}(undef, 2*L^2)
-    for i in eachindex(sites)
-        sites[i] = HoneycombLatticeSite(
-            i, 
-            _HC_xneighbour(i, L), 
-            _HC_yneighbour(i, L), 
-            _HC_zneighbour(i, L), 
-            _HC_redneighbour(i, L)[1], 
-            _HC_greenneighbour(i, L)[1], 
-            _HC_blueneighbour(i, L)[1], 
-            _HC_cartesian_position(i, L)[1],
-            _HC_cartesian_position(i, L)[2]
-        )
+struct KekuleLattice <: Lattice
+    L::Int
+    nqubits::Int
+    sites::Vector{HoneycombLatticeSite}
+    function KekuleLattice(L) :: KekuleLattice
+        sites = Vector{HoneycombLatticeSite}(undef, 2*L^2)
+        for i in eachindex(sites)
+            sites[i] = HoneycombLatticeSite(
+                i, 
+                _HC_xneighbour(i, L), 
+                _HC_yneighbour(i, L), 
+                _HC_zneighbour(i, L), 
+                _HC_redneighbour(i, L)[1], 
+                _HC_greenneighbour(i, L)[1], 
+                _HC_blueneighbour(i, L)[1], 
+                _HC_cartesian_position(i, L)[1],
+                _HC_cartesian_position(i, L)[2]
+            )
+        end
+        return new(L, 2*L^2, sites)
     end
-    return HoneycombLattice(L, 2*L^2, sites)
 end

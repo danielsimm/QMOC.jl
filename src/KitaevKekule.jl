@@ -54,6 +54,18 @@ function get_operators(trajectory::KekuleTrajectory)
     matrix[3, :] .= _HC_blue_operators(trajectory.size)
     return matrix
 end
+
+function get_operators(c::KitaevNNNCircuit)
+    L = c.size
+    vector = Vector{PauliOperator}(undef, (3+6)*L^2)
+    vector[1:L^2] .= _HC_XX_operators(L)
+    vector[L^2+1:2*L^2] .= _HC_YY_operators(L)
+    vector[2*L^2+1:3*L^2] .= _HC_ZZ_operators(L)
+    vector[3*L^2+1:5*L^2] .= _HC_JX_operators(L)
+    vector[5*L^2+1:7*L^2] .= _HC_JY_operators(L)
+    vector[7*L^2+1:9*L^2] .= _HC_JZ_operators(L)
+    return vector
+end
     
 function initialise(trajectory::HoneycombTrajectory)
     L = trajectory.size
@@ -65,14 +77,18 @@ function initialise(trajectory::HoneycombTrajectory)
     return MixedDestabilizer(stabiliser)
 end
 
-function initial_state(c::KitaevCircuit)
+
+function initial_state(c::HoneycombCircuit)
     L = c.size
-    stabs = [_HC_ZZ_operators(L)[1:L^2-1]..., _HC_WilsonPlaquette_operators(L)..., _HC_WilsonLoops(L)...]
-    stab = Stabilizer(stabs)
+    stab = QuantumClifford.MixedDestabilizer(QuantumClifford.Stabilizer(one(QuantumClifford.Tableau, 2*L^2; basis=:X)))
+    ops = [ _HC_WilsonPlaquette_operators(L)..., _HC_WilsonLoops(L)..., _HC_ZZ_operators(L)...]
+    for op in ops
+        QuantumClifford.project!(stab, op, phases=false)
+    end
     if QuantumClifford.trusted_rank(stab) != 2*L^2
         @warn "Initial state is not pure."
     end
-    return MixedDestabilizer(stab)
+    return stab
 end
 
 
@@ -114,6 +130,33 @@ function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::KekuleTr
     return nothing
 end
 
+function apply!(stabilizer, c::KitaevNNNCircuit, operators)
+    p1 = c.params[1]
+    p2 = c.params[2]
+    p3 = c.params[3]
+    p4 = c.params[4]
+    p5 = c.params[5]
+    p6 = c.params[6]
+    L = c.size
+    for subtime in 1:c.nqubits
+        p = rand()
+        if p < p1
+            project!(stabilizer, operators[rand(1:L^2)], keep_result=false, phases=false)
+        elseif p < p1 + p2
+            project!(stabilizer, operators[rand(L^2+1:2*L^2)], keep_result=false, phases=false)
+        elseif p < p1 + p2 + p3
+            project!(stabilizer, operators[rand(2*L^2+1:3*L^2)], keep_result=false, phases=false)
+        elseif p < p1 + p2 + p3 + p4
+            project!(stabilizer, operators[rand(3*L^2+1:5*L^2)], keep_result=false, phases=false)
+        elseif p < p1 + p2 + p3 + p4 + p5
+            project!(stabilizer, operators[rand(5*L^2+1:7*L^2)], keep_result=false, phases=false)
+        else
+            project!(stabilizer, operators[rand(7*L^2+1:9*L^2)], keep_result=false, phases=false)
+        end
+    end
+end
+
+
 function apply!(stabilizer, c, operators)
     p1 = c.params[1]
     p2 = c.params[2] + p1
@@ -135,6 +178,15 @@ end
 
 function entropy(state::QuantumClifford.MixedDestabilizer, trajectory::HoneycombTrajectory; algo=Val(:rref))
     L = trajectory.size
+    EE = zeros(L+1)
+    for i in 1:L
+        EE[i+1] = entanglement_entropy(state, HC_subsystem(L, 1:i), algo)
+    end
+    return EE
+end
+
+function entropy(state::QuantumClifford.MixedDestabilizer, c::KitaevCircuit; algo=Val(:rref))
+    L = c.size
     EE = zeros(L+1)
     for i in 1:L
         EE[i+1] = entanglement_entropy(state, HC_subsystem(L, 1:i), algo)
@@ -178,6 +230,15 @@ function subsystem_labels(trajectory::HoneycombTrajectory)
     return subsystems
 end
 
+function subsystem_labels(c::KitaevCircuit)
+    L = c.size
+    subsystems = zeros(L+1)
+    for i in 1:L
+        subsystems[i+1] = i
+    end
+    return subsystems
+end
+
 function tmi(state::QuantumClifford.MixedDestabilizer, trajectory::HoneycombTrajectory; algo=Val(:rref))
     L = trajectory.size
     if mod(L, 4) != 0
@@ -196,20 +257,42 @@ function tmi(state::QuantumClifford.MixedDestabilizer, trajectory::HoneycombTraj
     return SA + SB + SC - SAB - SBC - SAC + SABC
 end
 
+# function tmi(state, c::HoneycombCircuit; algo=Val(:rref))
+#     N = c.size^2 *2
+#     if mod(N, 4) != 0
+#         @info "L must be a multiple of 4, but is $(L). Tripartite mutual information is ill-defined."
+#     end
+#     A = collect(1:Int(N/4))
+#     B = collect(Int(N/4)+1:Int(N/2))
+#     C = collect(Int(N/2)+1:Int(3N/4))
+#     SA = entanglement_entropy(state, A, algo)
+#     SB = entanglement_entropy(state, B, algo)
+#     SC = entanglement_entropy(state, C, algo)
+#     SAB = entanglement_entropy(state, union(A,B), algo)
+#     SBC = entanglement_entropy(state, union(B,C), algo)
+#     SAC = entanglement_entropy(state, union(A,C), algo)
+#     SABC = entanglement_entropy(state, union(A, B, C), algo)
+#     return SA + SB + SC - SAB - SBC - SAC + SABC
+# end
+
 function tmi(state, c::HoneycombCircuit; algo=Val(:rref))
-    L = c.size
-    if mod(L, 4) != 0
-        @info "L must be a multiple of 4, but is $(L). Tripartite mutual information is ill-defined."
+    mod(c.size, 4) == 0 || error("L must be a multiple of 4, but is $(c.size). Tripartite mutual information is ill-defined.")
+    partitions = _HC_all_partitions(c.size)
+    N = c.size^2 *2
+   tmis = zeros(Int, length(partitions))
+    for (i, part) in enumerate(partitions)
+        A = collect(part[1])
+        B = collect(part[2])
+        C = collect(part[3])
+        SA = entanglement_entropy(state, A, algo)
+        SB = entanglement_entropy(state, B, algo)
+        SC = entanglement_entropy(state, C, algo)
+        SAB = entanglement_entropy(state, union(A,B), algo)
+        SBC = entanglement_entropy(state, union(B,C), algo)
+        SAC = entanglement_entropy(state, union(A,C), algo)
+        SABC = entanglement_entropy(state, union(A, B, C), algo)
+        tmis[i] = SA + SB + SC - SAB - SBC - SAC + SABC
     end
-    A = HC_subsystem(L, 1:Int(L/4))
-    B = HC_subsystem(L, Int(L/4)+1:Int(L/2))
-    C = HC_subsystem(L, Int(L/2)+1:Int(3L/4))
-    SA = entanglement_entropy(state, A, algo)
-    SB = entanglement_entropy(state, B, algo)
-    SC = entanglement_entropy(state, C, algo)
-    SAB = entanglement_entropy(state, union(A,B), algo)
-    SBC = entanglement_entropy(state, union(B,C), algo)
-    SAC = entanglement_entropy(state, union(A,C), algo)
-    SABC = entanglement_entropy(state, union(A, B, C), algo)
-    return SA + SB + SC - SAB - SBC - SAC + SABC
+    return tmis
+
 end

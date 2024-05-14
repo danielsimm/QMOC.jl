@@ -131,19 +131,20 @@ struct DecoratedHoneycombLattice <: Lattice
     L::Int
     nqubits::Int
     sites::Vector{DecoratedHoneycombLatticeSite}
+    function DecoratedHoneycombLattice(L) :: DecoratedHoneycombLattice
+        sites = Vector{DecoratedHoneycombLatticeSite}(undef, 6*L^2)
+        for i in 1:6*L^2
+            cartesian = _DHC_cartesian_position(i, L)
+            sites[i] = DecoratedHoneycombLatticeSite(
+                i,
+                _DHC_xneighbour(i, L),
+                _DHC_yneighbour(i, L),
+                _DHC_zneighbour(i, L),
+                -cartesian[1],
+                cartesian[2])
+        end
+        return new(L, 6*L^2, sites)
+    end
 end
 
-function decoratedhoneycomblattice(L) :: DecoratedHoneycombLattice
-    sites = Vector{DecoratedHoneycombLatticeSite}(undef, 6*L^2)
-    for i in 1:6*L^2
-        cartesian = _DHC_cartesian_position(i, L)
-        sites[i] = DecoratedHoneycombLatticeSite(
-            i,
-            _DHC_xneighbour(i, L),
-            _DHC_yneighbour(i, L),
-            _DHC_zneighbour(i, L),
-            -cartesian[1],
-            cartesian[2])
-    end
-    return DecoratedHoneycombLattice(L, 6*L^2, sites)
-end
+

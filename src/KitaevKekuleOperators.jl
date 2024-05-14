@@ -42,6 +42,162 @@ function _HC_YY_operators(L::Int64)
     return operators
 end
 
+function _HC_JX_operators(L::Int64)
+    operators = Vector{PauliOperator}(undef, 2*L^2)
+    for s in eachindex(operators)
+        i = s
+        j = _HC_yneighbour(i, L)
+        k = _HC_zneighbour(j, L)
+
+        Xarr = falses(2*L^2)
+        Zarr = falses(2*L^2)
+        Xarr[i] = true
+        Zarr[i] = true
+        Xarr[j] = true
+        Zarr[j] = true
+        a = PauliOperator(0x00, Xarr, Zarr)
+
+        Xarr = falses(2*L^2)
+        Zarr = falses(2*L^2)
+        Zarr[j] = true
+        Zarr[k] = true
+        b = PauliOperator(0x00, Xarr, Zarr)
+
+        operators[s] = a * b
+    end
+    return operators
+end
+
+function _HC_JY_operators(L::Int64)
+    operators = Vector{PauliOperator}(undef, 2*L^2)
+    for s in eachindex(operators)
+        i = s
+        j = _HC_zneighbour(i, L)
+        k = _HC_xneighbour(j, L)
+
+        Xarr = falses(2*L^2)
+        Zarr = falses(2*L^2)
+        Zarr[i] = true
+        Zarr[j] = true
+        a = PauliOperator(0x00, Xarr, Zarr)
+
+        Xarr = falses(2*L^2)
+        Zarr = falses(2*L^2)
+        Xarr[j] = true
+        Xarr[k] = true
+        b = PauliOperator(0x00, Xarr, Zarr)
+
+        operators[s] = a * b
+    end
+    return operators
+end
+
+function _HC_JZ_operators(L::Int64)
+    operators = Vector{PauliOperator}(undef, 2*L^2)
+    for s in eachindex(operators)
+        i = s
+        j = _HC_xneighbour(i, L)
+        k = _HC_yneighbour(j, L)
+
+        Xarr = falses(2*L^2)
+        Zarr = falses(2*L^2)
+        Xarr[i] = true
+        Xarr[j] = true
+        a = PauliOperator(0x00, Xarr, Zarr)
+
+        Xarr = falses(2*L^2)
+        Zarr = falses(2*L^2)
+        Xarr[j] = true
+        Zarr[j] = true
+        Xarr[k] = true
+        Zarr[k] = true
+        b = PauliOperator(0x00, Xarr, Zarr)
+
+        operators[s] = a * b
+    end
+    return operators
+end
+
+function _HC_J_operators(L::Int64)
+    return [_HC_JX_operators(L)..., _HC_JY_operators(L)..., _HC_JZ_operators(L)...]
+end
+
+# function _HC_J_operators(L::Int64)
+#     operators =[]
+#     for s in 1:2*L^2
+#             #first operator XX * YY
+#             i = s
+#             j = _HC_xneighbour(i, L)
+#             k = _HC_yneighbour(j, L)
+
+#             Xarr = falses(2*L^2)
+#             Zarr = falses(2*L^2)
+#             Xarr[i] = true
+#             Xarr[j] = true
+#             op1a = PauliOperator(0x00, Xarr, Zarr)
+
+#             Xarr = falses(2*L^2)
+#             Zarr = falses(2*L^2)
+#             Xarr[j] = true
+#             Zarr[j] = true
+#             Xarr[k] = true
+#             Zarr[k] = true
+#             op1b = PauliOperator(0x00, Xarr, Zarr)
+
+#             op1 = op1a * op1b
+#             push!(operators, op1)
+
+#             # second operator YY * ZZ
+#             i = s
+#             j = _HC_yneighbour(i, L)
+#             k = _HC_zneighbour(j, L)
+
+#             Xarr = falses(2*L^2)
+#             Zarr = falses(2*L^2)
+#             Xarr[i] = true
+#             Zarr[i] = true
+#             Xarr[j] = true
+#             Zarr[j] = true
+#             op2a = PauliOperator(0x00, Xarr, Zarr)
+
+#             Xarr = falses(2*L^2)
+#             Zarr = falses(2*L^2)
+#             Zarr[j] = true
+#             Zarr[k] = true
+#             op2b = PauliOperator(0x00, Xarr, Zarr)
+
+#             op2 = op2a * op2b
+#             push!(operators, op2)
+
+#             # third operator ZZ * XX
+#             i = s
+#             j = _HC_zneighbour(i, L)
+#             k = _HC_xneighbour(j, L)
+
+#             Xarr = falses(2*L^2)
+#             Zarr = falses(2*L^2)
+#             Zarr[i] = true
+#             Zarr[j] = true
+#             op3a = PauliOperator(0x00, Xarr, Zarr)
+
+#             Xarr = falses(2*L^2)
+#             Zarr = falses(2*L^2)
+#             Xarr[j] = true
+#             Xarr[k] = true
+#             op3b = PauliOperator(0x00, Xarr, Zarr)
+
+#             op3 = op3a * op3b
+#             push!(operators, op3)
+#     end
+#     return operators
+# end
+
+
+
+
+
+
+
 function _HC_red_operators(L::Int64)
     operators = Vector{PauliOperator}(undef, L^2)
     for k in eachindex(operators)
@@ -158,13 +314,15 @@ function _HC_WilsonLoops(L::Int64)
     Zarr2 = falses(2*L^2)
     for i in 1:2*L
         Xarr1[site1] = true #XXXX...
-        Zarr2[site2] = true #ZZZZ...
+
+        Xarr2[site2] = true #YYYY...
+        Zarr2[site2] = true 
         if isodd(i)
-            site1 = _HC_zneighbour(site1, L)
+            site1 = _HC_xneighbour(site1, L)
             site2 = _HC_xneighbour(site2, L)
         else
             site1 = _HC_yneighbour(site1, L)
-            site2 = _HC_yneighbour(site2, L)
+            site2 = _HC_zneighbour(site2, L)
         end
     end
     return [PauliOperator(0x00, Xarr1, Zarr1) PauliOperator(0x00, Xarr2, Zarr2)]

@@ -15,7 +15,7 @@ import JLD2: jldopen, load, jldsave
 
 include("circuits.jl")
 include("Trajectories.jl")
-include("Geometry.jl")
+include("geometry.jl")
 include("KitaevKekule.jl")
 include("YaoKivelson.jl")
 include("Chain.jl")
@@ -23,6 +23,8 @@ include("parameter_toolbox.jl")
 include("Simulators.jl")
 include("Analysis.jl")
 include("thermalgen.jl")
+include("sampling.jl")
+include("mpi.jl")
 
 if !isdir("data")
     mkdir("data")
@@ -47,5 +49,8 @@ export backup, cleanup, missingTrajectories, orphanedTrajectories, archive, load
 
 # from Parameters.jl
 export parameter_full, parameter_wedge, parameter_line
+
+#from geometry.jl
+export HoneycombLattice, KekuleLattice
 
 end

@@ -62,8 +62,24 @@ function get_operators(trajectory::YaoKivelsonOrientableTrajectory)
     return vector
 end
 
+function get_operators(c::YaoKivelsonOrientableCircuit)
+    L = c.size
+    vector = Vector{PauliOperator}(undef, (3+4)*L^2)
+    vector[1:4*L^2] = _DHC_J_operators_orientable(L)
+    vector[4*L^2+1:end] = _DHC_K_operators(L)
+    return vector
+end
+
 function get_operators(trajectory::YaoKivelsonNonorientableTrajectory)
     L = trajectory.size
+    vector = Vector{PauliOperator}(undef, (3+6)*L^2)
+    vector[1:6*L^2] = _DHC_J_operators_nonorientable(L)
+    vector[6*L^2+1:end] = _DHC_K_operators(L)
+    return vector
+end
+
+function get_operators(c::YaoKivelsonNonorientableCircuit)
+    L = c.size
     vector = Vector{PauliOperator}(undef, (3+6)*L^2)
     vector[1:6*L^2] = _DHC_J_operators_nonorientable(L)
     vector[6*L^2+1:end] = _DHC_K_operators(L)
@@ -100,6 +116,18 @@ function initialise(trajectory::DecoratedHoneycombTrajectory)
     return stab
 end
 
+function initial_state(c::DecoratedHoneycombCircuit)
+    L = c.size
+    stab = QuantumClifford.MixedDestabilizer(QuantumClifford.Stabilizer(one(QuantumClifford.Tableau, 6*L^2; basis=:X)))
+    largeloops = _DHC_largeloop_operators(L)
+    smallloops = _DHC_smallloop_operators(L)
+    wilsonlines = _DHC_wilsonline_operators(L)
+    for op in [largeloops..., smallloops..., wilsonlines...]
+        QuantumClifford.project!(stab, op, phases=false)
+    end
+    @assert QuantumClifford.trusted_rank(stab) == 6*L^2
+    return stab
+end
 ### Dynamics ###
 
 function circuit!(state::QuantumClifford.MixedDestabilizer, trajectory::YaoKivelsonXYZTrajectory, operators::Vector{PauliOperator}) ::Nothing
@@ -146,6 +174,37 @@ function circuit!(state::QuantumClifford.AbstractStabilizer, trajectory::YaoKive
     return nothing
 end
 
+function apply!(stabilizer, c::YaoKivelsonOrientableCircuit, operators)
+    J = c.params[1] # probability of triangular measurement, orientable: silence triangular Z bond, non-orientable: all bonds
+    # K = c.params[2] # probability of hexagonal/Kitaev-style measurement
+    A = 4*c.size^2
+    B = 3*c.size^2
+    for subtime in 1:c.nqubits
+        if rand() < J
+            project!(stabilizer, operators[rand(1:A)], keep_result=false, phases=false)
+        else
+            project!(stabilizer, operators[A+rand(1:B)], keep_result=false, phases=false)
+        end
+    end
+    return nothing
+end
+
+function apply!(stabilizer, c::YaoKivelsonNonorientableCircuit, operators)
+    J = c.params[1] # probability of triangular measurement, orientable: silence triangular Z bond, non-orientable: all bonds
+    # K = c.params[2] # probability of hexagonal/Kitaev-style measurement
+    A = 6*c.size^2
+    B = 3*c.size^2
+    for subtime in 1:c.nqubits
+        if rand() < J
+            project!(stabilizer, operators[rand(1:A)], keep_result=false, phases=false)
+        else
+            project!(stabilizer, operators[A+rand(1:B)], keep_result=false, phases=false)
+        end
+    end
+    return nothing
+end
+
+
 
 ### Observables ###
 
@@ -154,18 +213,18 @@ end
 
 Return a vector of sites in the order of the snake pattern.
 """
-function DHC_snake(L)
-    sites = zeros(Int, 6*L^2)
-    rows = [((i-1)*6*L)+1:i*6*L for i in 1:L]
-    for r in eachindex(rows)
-        if iseven(r)
-            sites[rows[r]] = rows[r][end:-1:1]
-        else
-            sites[rows[r]] = rows[r]
-        end
-    end
-    return sites
-end
+# function DHC_snake(L)
+#     sites = zeros(Int, 6*L^2)
+#     rows = [((i-1)*6*L)+1:i*6*L for i in 1:L]
+#     for r in eachindex(rows)
+#         if iseven(r)
+#             sites[rows[r]] = rows[r][end:-1:1]
+#         else
+#             sites[rows[r]] = rows[r]
+#         end
+#     end
+#     return sites
+# end
 
 function new_entropy(state, trajectory::DecoratedHoneycombTrajectory)
     stab = copy(stabilizerview(state))
@@ -178,9 +237,9 @@ function entropy(state::QuantumClifford.AbstractStabilizer, trajectory::Decorate
     algo=Val(:rref)
     L = trajectory.size
     EE = zeros(L+1)
-    # for i in 1:L
-    #     EE[i+1] = entanglement_entropy(state, DHC_subsystem(L, 1:i), algo)
-    # end
+    for i in 1:L
+        EE[i+1] = entanglement_entropy(state, DHC_subsystem(L, 1:i), algo)
+    end
     return EE
 end
 
