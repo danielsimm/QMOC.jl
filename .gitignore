@@ -29,3 +29,5 @@ docs/site/
 data/
 
 analysis/post-process.jl
+
+LocalPreferences.toml

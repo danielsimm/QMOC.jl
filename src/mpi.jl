@@ -17,8 +17,8 @@ function meta_init(
 	sample_distance::Int64,
 	outputname::String,
 )
-	if !(isdir("data/$(outputname)"))
-		mkdir("data/$(outputname)")
+	if !(isdir("cluster/$(outputname)"))
+		mkdir("cluster/$(outputname)")
 	end
 	metadata = Dict(
 		"circuits" => circuits,
