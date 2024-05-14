@@ -28,7 +28,7 @@ function meta_init(
 		"sample_distance" => sample_distance,
 		"outputname" => outputname,
 	)
-	jldsave("data/$(outputname)/metadata.jld2"; metadata = metadata)
+	jldsave("cluster/$(outputname)/metadata.jld2"; metadata = metadata)
 end
 
 function mpi_sample_I3(
@@ -77,7 +77,7 @@ function mpi_sample_I3(
 	Threads.@threads for this_work in todo
 		trajectory_id, circuit_id = this_work
 		circuit = circuits[circuit_id]
-		filename = "data/$(outputname)/idx$(circuit_id)_$(trajectory_id).jld2"
+		filename = "cluster/$(outputname)/idx$(circuit_id)_$(trajectory_id).jld2"
 		sample_I3(circuit, thermalization_time, n_samples, sample_distance; filename = filename)
 		println("rank $rank | trajectory $(trajectory_id) of circuit $(circuit_id) -- done")
 	end
