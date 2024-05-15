@@ -58,10 +58,21 @@ function mpi_sample_I3(
 			MPI.send(part[i], comm; dest = (i - 1))
 		end
 		todo = part[1]
-		println("rank $rank | has indices $(todo)")
+		println()
+		println()
+		println()
+		println()
+		println("---------------------------------------------")
+		println("start:", now())
+		println("---------------------------------------------")
+		println()
+		println()
+		println()
+		println()
+		#println("rank $rank | has indices $(todo)")
 	else
 		todo = MPI.recv(comm) # recieve indices
-		println("rank $rank | has indices $(todo)")
+		#println("rank $rank | has indices $(todo)")
 	end
 	MPI.Barrier(comm)
 	########################
@@ -84,5 +95,34 @@ function mpi_sample_I3(
 	###############
 
 	MPI.Barrier(comm)
-	MPI.Finalize()
+
+	if rank == root
+		folder = "cluster/$(outputname)"
+		files = readdir(folder)
+		to_read = filter(contains("idx"), files)
+		idx_array = sort(unique(parse.(Int64, [split(split(string, "idx")[2], "_")[1] for string in to_read])))
+
+		Threads.@threads for idx in idx_array
+			this_files = filter(contains("idx$(idx)_"), to_read)
+			out = zeros(length(this_files))
+			for i in eachindex(this_files)
+				file = this_files[i]
+				out[i] = jldopen("$(folder)/$(file)")["I3"]
+				rm("$(folder)/$(file)")
+			end
+			writedlm("$(folder)/idx$(idx).txt", out)
+		end
+		println()
+		println()
+		println()
+		println()
+		println("---------------------------------------------")
+		println("complete:", now())
+		println("---------------------------------------------")
+		println()
+		println()
+		println()
+		println()
+		MPI.Finalize()
+	end
 end
