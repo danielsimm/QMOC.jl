@@ -22,7 +22,7 @@ circuits = [QMOC.KitaevCircuit(L, params[i]) for i in eachindex(params)]
 
 n_trajectories = 192
 thermalization_time = 3*L
-n_samples = 150
+n_samples = 100
 sample_distance = 2
 
 
