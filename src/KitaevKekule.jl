@@ -185,7 +185,7 @@ function entropy(state::QuantumClifford.MixedDestabilizer, trajectory::Honeycomb
     return EE
 end
 
-function entropy(state::QuantumClifford.MixedDestabilizer, c::KitaevCircuit; algo=Val(:rref))
+function entropy(state::QuantumClifford.MixedDestabilizer, c::HoneycombCircuit; algo=Val(:rref))
     L = c.size
     EE = zeros(L+1)
     for i in 1:L
@@ -230,7 +230,7 @@ function subsystem_labels(trajectory::HoneycombTrajectory)
     return subsystems
 end
 
-function subsystem_labels(c::KitaevCircuit)
+function subsystem_labels(c::HoneycombCircuit)
     L = c.size
     subsystems = zeros(L+1)
     for i in 1:L

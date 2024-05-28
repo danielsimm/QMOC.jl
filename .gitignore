@@ -31,3 +31,5 @@ data/
 analysis/post-process.jl
 
 LocalPreferences.toml
+
+docs/Manifest.toml
