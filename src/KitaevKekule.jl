@@ -91,6 +91,12 @@ function initial_state(c::HoneycombCircuit)
     return stab
 end
 
+function initial_mixed_state(c::HoneycombCircuit)
+    L = c.size
+    ops = [ _HC_WilsonPlaquette_operators(L)...]
+    return QuantumClifford.MixedDestabilizer(QuantumClifford.Stabilizer(ops))
+end
+
 
 ### Dynamics ###
 
