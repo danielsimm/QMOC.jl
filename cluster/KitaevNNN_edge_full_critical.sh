@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=192
 #SBATCH -p smp
 #SBATCH -J "QMOC_KitaevNNNedge_crit_64"
-#SBATCH --time=12:00:00
+#SBATCH --time=24:00:00
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=simm@thp.uni-koeln.de
 #SBATCH -A ag-trebst

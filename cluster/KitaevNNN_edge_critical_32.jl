@@ -4,7 +4,8 @@ L = 32
 
 pj = 1/3
 pjx = pjy = pjz = pj/3
-px = py = pz = 2/9
+px = 1 - pj
+py = pz = 0.0
 params = [px, py, pz, pjx, pjy, pjz]
 
 
