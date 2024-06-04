@@ -220,7 +220,7 @@ function mpi_sample_full(
 	end
 end
 
-function mpi_sample_purification(
+function mpi_sample_free_purification(
 	circuits::Vector{T} where T <: AbstractCircuit,
 	n_trajectories::Int64,
 	timesteps::Int64,
@@ -272,7 +272,74 @@ function mpi_sample_purification(
 		trajectory_id, circuit_id = this_work
 		circuit = circuits[circuit_id]
 		filename = "cluster/$(outputname)/idx$(circuit_id)_$(trajectory_id).jld2"
-		sample_purification(circuit, timesteps; filename = filename)
+		sample_free_purification(circuit, timesteps; filename = filename)
+		println("rank $rank | trajectory $(trajectory_id) of circuit $(circuit_id) -- done")
+	end
+	###############
+
+	MPI.Barrier(comm)
+
+	if rank == root
+		folder = "cluster/$(outputname)"
+		sample_purification_cleanup(folder, timesteps)
+		finaltime()
+		MPI.Finalize()
+	end
+end
+
+function mpi_sample_full_purification(
+	circuits::Vector{T} where T <: AbstractCircuit,
+	n_trajectories::Int64,
+	timesteps::Int64,
+	outputname::String,
+)
+
+	### MPI startup ###
+	MPI.Init()
+	comm = MPI.COMM_WORLD
+	rank = MPI.Comm_rank(comm)
+	nworkers = MPI.Comm_size(comm)
+	root = 0
+	MPI.Barrier(comm)
+	###################
+
+	### distribute work ###
+	if rank == root
+		meta = Dict(
+			"circuits" => circuits,
+			"n_trajectories" => n_trajectories,
+			"timesteps" => timesteps,
+			"outputname" => outputname,
+		)
+		meta_init(meta, outputname)
+		work = distribute_work(circuits, n_trajectories)
+		part = [work[i:nworkers:end] for i in 1:nworkers]
+		for i in 2:nworkers
+			MPI.send(part[i], comm; dest = (i - 1))
+		end
+		todo = part[1]
+		starttime()
+		#println("rank $rank | has indices $(todo)")
+	else
+		todo = MPI.recv(comm) # recieve indices
+		#println("rank $rank | has indices $(todo)")
+	end
+	MPI.Barrier(comm)
+	########################
+
+	if Threads.nthreads() > length(todo)
+		println("rank $rank | Warning: more threads than work")
+	end
+	if Threads.nthreads() <= length(todo)
+		println("rank $rank | running with $(Threads.nthreads()) threads | $(length(todo)) trajectories to sample...")
+	end
+
+	### do work ###
+	Threads.@threads for this_work in todo
+		trajectory_id, circuit_id = this_work
+		circuit = circuits[circuit_id]
+		filename = "cluster/$(outputname)/idx$(circuit_id)_$(trajectory_id).jld2"
+		sample_full_purification(circuit, timesteps; filename = filename)
 		println("rank $rank | trajectory $(trajectory_id) of circuit $(circuit_id) -- done")
 	end
 	###############

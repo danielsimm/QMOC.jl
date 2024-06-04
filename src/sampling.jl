@@ -55,7 +55,7 @@ function sample_full(circuit, thermalization_time, n_samples, sample_distance; f
 	end
 end
 
-function sample_purification(circuit, timesteps; filename = nothing)
+function sample_free_purification(circuit, timesteps; filename = nothing)
 	if filename != nothing
         if isfile(filename)
             return nothing
@@ -92,4 +92,26 @@ function sample_purification_cleanup(folder, timesteps)
 		end
 		writedlm("$(folder)/idx$(idx)_entropy.txt", entropies)
 		end
+end
+
+function sample_full_purification(circuit, timesteps; filename = nothing)
+	if filename != nothing
+        if isfile(filename)
+            return nothing
+        end
+    end
+	ops = get_operators(circuit)
+	entropy = zeros(timesteps+1)
+	state = QuantumClifford.MixedDestabilizer(zero(QuantumClifford.Stabilizer, 1, circuit.nqubits))
+	entropy[1] = circuit.nqubits
+	#thermalization
+	for i in 1:timesteps
+		apply!(state, circuit, ops)
+		entropy[i+1] = circuit.nqubits - QuantumClifford.rank(state)
+	end
+	if filename != nothing
+		jldsave("$(filename)"; entropy = entropy)
+	else
+		return entropy
+	end
 end
