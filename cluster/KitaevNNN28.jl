@@ -3,7 +3,7 @@ using JLD2
 using DelimitedFiles
 
 
-L = 40
+L = 28
 Kc = 0.734
 dK1 = 8.0
 dK2 = 2.0
