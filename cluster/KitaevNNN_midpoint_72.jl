@@ -1,6 +1,6 @@
 using QMOC
 
-L = 32
+L = 72
 
 pj = 1/4
 pjx = pjy = pjz = pj/3
@@ -8,10 +8,10 @@ px = py = pz = 1/4
 params = [px, py, pz, pjx, pjy, pjz]
 
 
-n_trajectories = 384
-thermalization_time = 3*L
-n_samples = 100
-sample_distance = 3
+n_trajectories = 768
+thermalization_time = 2*L + 20
+n_samples = 30
+sample_distance = 2
 
 
 circuits = [QMOC.KitaevNNNCircuit(L, params)]
