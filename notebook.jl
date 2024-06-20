@@ -34,6 +34,10 @@ begin
 	metadata40 = jldopen("cluster/Kitaev40/metadata.jld2")["metadata"]
 	metadata44 = jldopen("cluster/Kitaev44/metadata.jld2")["metadata"]
 	metadata48 = jldopen("cluster/Kitaev48/metadata.jld2")["metadata"]
+	metadata52 = jldopen("cluster/Kitaev52/metadata.jld2")["metadata"]
+	metadata56 = jldopen("cluster/Kitaev56/metadata.jld2")["metadata"]
+	metadata64 = jldopen("cluster/Kitaev64/metadata.jld2")["metadata"]
+	metadata72 = jldopen("cluster/Kitaev72/metadata.jld2")["metadata"]
 end
 
 # ╔═╡ ee419920-cd50-4636-b80e-55f7a5c89089
@@ -45,6 +49,10 @@ begin
 	circuits40 = metadata40["circuits"]
 	circuits44 = metadata44["circuits"]
 	circuits48 = metadata48["circuits"]
+	circuits52 = metadata52["circuits"]
+	circuits56 = metadata56["circuits"]
+	circuits64 = metadata64["circuits"]
+	circuits72 = metadata72["circuits"]
 end
 
 # ╔═╡ 9fcf0aa0-4026-4c72-9cc3-b2cbfbafc37e
@@ -56,6 +64,10 @@ begin
 	pxs40 = [circuits40[i].params[1] for i in 1:100]
 	pxs44 = [circuits44[i].params[1] for i in 1:100]
 	pxs48 = [circuits48[i].params[1] for i in 1:100]
+	pxs52 = [circuits52[i].params[1] for i in 1:100]
+	pxs56 = [circuits56[i].params[1] for i in 1:100]
+	pxs64 = [circuits64[i].params[1] for i in 1:100]
+	pxs72 = [circuits72[i].params[1] for i in 1:100]
 end
 
 # ╔═╡ 40351660-b4d8-4eb9-b28a-898dd14f5149
@@ -67,6 +79,10 @@ begin
 	I3_40 = [mean(readdlm("cluster/Kitaev40/idx$(i).txt")) for i in 1:100]
 	I3_44 = [mean(readdlm("cluster/Kitaev44/idx$(i).txt")) for i in 1:100]
 	I3_48 = [mean(readdlm("cluster/Kitaev48/idx$(i).txt")) for i in 1:100]
+	I3_52 = [mean(readdlm("cluster/Kitaev52/idx$(i).txt")) for i in 1:100]
+	I3_56 = [mean(readdlm("cluster/Kitaev56/idx$(i).txt")) for i in 1:100]
+	I3_64 = [mean(readdlm("cluster/Kitaev64/idx$(i).txt")) for i in 1:100]
+	I3_72 = [mean(readdlm("cluster/Kitaev72/idx$(i).txt")) for i in 1:100]
 	ΔI3_24 = [std(readdlm("cluster/Kitaev24/idx$(i).txt")) ./sqrt(length(readdlm("cluster/Kitaev24/idx$(i).txt"))) for i in 1:100]
 	ΔI3_28 = [std(readdlm("cluster/Kitaev28/idx$(i).txt")) ./sqrt(length(readdlm("cluster/Kitaev28/idx$(i).txt"))) for i in 1:100]
 	ΔI3_32 = [std(readdlm("cluster/Kitaev32/idx$(i).txt")) ./sqrt(length(readdlm("cluster/Kitaev32/idx$(i).txt"))) for i in 1:100]
@@ -74,6 +90,10 @@ begin
 	ΔI3_40 = [std(readdlm("cluster/Kitaev40/idx$(i).txt")) ./sqrt(length(readdlm("cluster/Kitaev40/idx$(i).txt"))) for i in 1:100]
 	ΔI3_44 = [std(readdlm("cluster/Kitaev44/idx$(i).txt")) ./sqrt(length(readdlm("cluster/Kitaev44/idx$(i).txt"))) for i in 1:100]
 	ΔI3_48 = [std(readdlm("cluster/Kitaev48/idx$(i).txt")) ./sqrt(length(readdlm("cluster/Kitaev48/idx$(i).txt"))) for i in 1:100]
+	ΔI3_52 = [std(readdlm("cluster/Kitaev52/idx$(i).txt")) ./sqrt(length(readdlm("cluster/Kitaev52/idx$(i).txt"))) for i in 1:100]
+	ΔI3_56 = [std(readdlm("cluster/Kitaev56/idx$(i).txt")) ./sqrt(length(readdlm("cluster/Kitaev56/idx$(i).txt"))) for i in 1:100]
+	ΔI3_64 = [std(readdlm("cluster/Kitaev64/idx$(i).txt")) ./sqrt(length(readdlm("cluster/Kitaev64/idx$(i).txt"))) for i in 1:100]
+	ΔI3_72 = [std(readdlm("cluster/Kitaev72/idx$(i).txt")) ./sqrt(length(readdlm("cluster/Kitaev72/idx$(i).txt"))) for i in 1:100]
 end
 
 # ╔═╡ c82acbea-85ba-4b5f-8bab-8d46f5a5f8bf
@@ -97,14 +117,13 @@ end
 
 # ╔═╡ 6bdcd94b-de0b-4dfa-8c94-3f7e53a44ee9
 sp = ScalingProblem(
-	[pxs40, pxs44, pxs48],
-	[I3_40, I3_44, I3_48],
-	[ΔI3_40, ΔI3_44, ΔI3_48],
-	[40, 44, 48],
+	[pxs40, pxs44, pxs48, pxs52, pxs56, pxs64, pxs72][1:end],
+	[I3_40, I3_44, I3_48, I3_52, I3_56, I3_64, I3_72][1:end],
+	[ΔI3_40, ΔI3_44, ΔI3_48, ΔI3_52, ΔI3_56, ΔI3_64, ΔI3_72][1:end],
+	[40, 44, 48, 52, 56, 64, 72][1:end],
 	sf = ScalingFunction(:x),
-	starting_ps = [0.65, 1.0],
-	dx = [-2,2],
-	quality = Houdayer()
+	starting_ps = [0.65, 1.1],
+	dx = [-0.2,0.2],
 )
 
 # ╔═╡ 3ddfbe04-fd6f-4860-b920-6f7258fc9f07
