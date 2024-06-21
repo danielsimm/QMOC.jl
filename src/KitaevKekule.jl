@@ -66,6 +66,14 @@ function get_operators(c::KitaevNNNCircuit)
     vector[7*L^2+1:9*L^2] .= _HC_JZ_operators(L)
     return vector
 end
+
+function get_operators(c::KekuleCircuit)
+    matrix = Matrix{PauliOperator}(undef, 3, c.size^2)
+    matrix[1, :] .= _HC_red_operators(c.size)
+    matrix[2, :] .= _HC_green_operators(c.size)
+    matrix[3, :] .= _HC_blue_operators(c.size)
+    return matrix
+end
     
 function initialise(trajectory::HoneycombTrajectory)
     L = trajectory.size
