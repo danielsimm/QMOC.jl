@@ -4,7 +4,7 @@ using DelimitedFiles
 
 
 L = 80
-Kc = 0.734
+Kc = 0.672
 dK1 = 8.0
 dK2 = 2.0
 nu = 0.93
@@ -24,7 +24,7 @@ circuits = [QMOC.KitaevNNNCircuit(L, params[i]) for i in eachindex(params)]
 
 n_trajectories = 192
 thermalization_time = 2*L+20
-n_samples = 60
+n_samples = 30
 sample_distance = 1
 
 println("KitaevNNN L = $(L)")

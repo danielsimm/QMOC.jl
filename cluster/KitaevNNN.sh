@@ -5,10 +5,12 @@
 #SBATCH --cpus-per-task=192
 #SBATCH -p smp
 #SBATCH -J "QMOC_KitaevNNN120"
-#SBATCH --time=50:00:00
+#SBATCH --time=100:00:00
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=simm@thp.uni-koeln.de
 #SBATCH -A ag-trebst
+#SBATCH --output=KitaevNNN120.out
+#SBATCH --error=KitaevNNN120.err
 
 cd QMOC.jl/
 julia --project -e 'using Pkg; pkg"instantiate"'
