@@ -28,4 +28,4 @@ n_samples = 150
 sample_distance = 3
 
 
-QMOC.mpi_sample_full(circuits, n_trajectories, thermalization_time, n_samples, sample_distance, "FullKitaevNNN$(L)")
+QMOC.mpi_sample_full(circuits, n_trajectories, thermalization_time, n_samples, sample_distance, "FullKitaevNNN2$(L)")

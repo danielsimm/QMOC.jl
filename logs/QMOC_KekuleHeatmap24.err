@@ -1,0 +1,4 @@
+┌ Warning: The Pkg REPL mode is intended for interactive use only, and should not be used from scripts. It is recommended to use the functional API instead.
+└ @ Pkg.REPLMode ~/.julia/juliaup/julia-1.10.4+0.x64.linux.gnu/share/julia/stdlib/v1.10/Pkg/src/REPLMode/REPLMode.jl:382
+┌ Warning: The Pkg REPL mode is intended for interactive use only, and should not be used from scripts. It is recommended to use the functional API instead.
+└ @ Pkg.REPLMode ~/.julia/juliaup/julia-1.10.4+0.x64.linux.gnu/share/julia/stdlib/v1.10/Pkg/src/REPLMode/REPLMode.jl:382

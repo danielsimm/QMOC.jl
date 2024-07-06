@@ -1,0 +1,228 @@
+┌ Warning: The Pkg REPL mode is intended for interactive use only, and should not be used from scripts. It is recommended to use the functional API instead.
+└ @ Pkg.REPLMode ~/.julia/juliaup/julia-1.10.4+0.x64.linux.gnu/share/julia/stdlib/v1.10/Pkg/src/REPLMode/REPLMode.jl:382
+┌ Warning: The Pkg REPL mode is intended for interactive use only, and should not be used from scripts. It is recommended to use the functional API instead.
+└ @ Pkg.REPLMode ~/.julia/juliaup/julia-1.10.4+0.x64.linux.gnu/share/julia/stdlib/v1.10/Pkg/src/REPLMode/REPLMode.jl:382
+error in running finalizer: ErrorException("task switch not allowed from inside gc finalizer")
+ijl_error at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/rtutils.c:41
+ijl_switch at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/task.c:636
+try_yieldto at ./task.jl:921
+wait at ./task.jl:995
+#wait#645 at ./condition.jl:130
+wait at ./condition.jl:125 [inlined]
+slowlock at ./lock.jl:156
+lock at ./lock.jl:147 [inlined]
+lock at ./lock.jl:227
+close at /home/dsimm1/.julia/packages/JLD2/VWinU/src/JLD2.jl:544
+jld_finalizer at /home/dsimm1/.julia/packages/JLD2/VWinU/src/JLD2.jl:564
+unknown function (ip: 0x7fffe0939955)
+_jl_invoke at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gf.c:2895 [inlined]
+ijl_apply_generic at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gf.c:3077
+run_finalizer at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gc.c:318
+jl_gc_run_finalizers_in_list at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gc.c:408
+run_finalizers at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gc.c:454
+enable_finalizers at ./gcutils.jl:157 [inlined]
+unlock at ./locks-mt.jl:68 [inlined]
+multiq_deletemin at ./partr.jl:168
+trypoptask at ./task.jl:977
+jfptr_trypoptask_75363.1 at /home/dsimm1/.julia/juliaup/julia-1.10.4+0.x64.linux.gnu/lib/julia/sys.so (unknown line)
+_jl_invoke at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gf.c:2895 [inlined]
+ijl_apply_generic at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gf.c:3077
+get_next_task at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/partr.c:337 [inlined]
+ijl_task_get_next at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/partr.c:390
+poptask at ./task.jl:985
+wait at ./task.jl:994
+task_done_hook at ./task.jl:675
+jfptr_task_done_hook_75286.1 at /home/dsimm1/.julia/juliaup/julia-1.10.4+0.x64.linux.gnu/lib/julia/sys.so (unknown line)
+_jl_invoke at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gf.c:2895 [inlined]
+ijl_apply_generic at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gf.c:3077
+jl_apply at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/julia.h:1982 [inlined]
+jl_finish_task at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/task.c:320
+start_task at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/task.c:1249
+error in running finalizer: ErrorException("task switch not allowed from inside gc finalizer")
+ijl_error at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/rtutils.c:41
+ijl_switch at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/task.c:636
+try_yieldto at ./task.jl:921
+wait at ./task.jl:995
+#wait#645 at ./condition.jl:130
+wait at ./condition.jl:125 [inlined]
+slowlock at ./lock.jl:156
+lock at ./lock.jl:147 [inlined]
+lock at ./lock.jl:227
+close at /home/dsimm1/.julia/packages/JLD2/VWinU/src/JLD2.jl:544
+jld_finalizer at /home/dsimm1/.julia/packages/JLD2/VWinU/src/JLD2.jl:564
+unknown function (ip: 0x7fffe0939955)
+_jl_invoke at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gf.c:2895 [inlined]
+ijl_apply_generic at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gf.c:3077
+run_finalizer at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gc.c:318
+jl_gc_run_finalizers_in_list at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gc.c:408
+run_finalizers at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gc.c:454
+enable_finalizers at ./gcutils.jl:157 [inlined]
+unlock at ./locks-mt.jl:68 [inlined]
+multiq_deletemin at ./partr.jl:168
+trypoptask at ./task.jl:977
+jfptr_trypoptask_75363.1 at /home/dsimm1/.julia/juliaup/julia-1.10.4+0.x64.linux.gnu/lib/julia/sys.so (unknown line)
+_jl_invoke at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gf.c:2895 [inlined]
+ijl_apply_generic at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gf.c:3077
+get_next_task at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/partr.c:337 [inlined]
+ijl_task_get_next at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/partr.c:390
+poptask at ./task.jl:985
+wait at ./task.jl:994
+task_done_hook at ./task.jl:675
+jfptr_task_done_hook_75286.1 at /home/dsimm1/.julia/juliaup/julia-1.10.4+0.x64.linux.gnu/lib/julia/sys.so (unknown line)
+_jl_invoke at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gf.c:2895 [inlined]
+ijl_apply_generic at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/gf.c:3077
+jl_apply at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/julia.h:1982 [inlined]
+jl_finish_task at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/task.c:320
+start_task at /cache/build/builder-amdci4-0/julialang/julia-release-1-dot-10/src/task.c:1249
+ERROR: LoadError: TaskFailedException
+
+    nested task error: schedule: Task not runnable
+    Stacktrace:
+      [1] error(s::String)
+        @ Base ./error.jl:35
+      [2] schedule(t::Task, arg::Any; error::Bool)
+        @ Base ./task.jl:851
+      [3] schedule
+        @ ./task.jl:849 [inlined]
+      [4] notify(c::Base.GenericCondition{Base.Threads.SpinLock}, arg::Any, all::Bool, error::Bool)
+        @ Base ./condition.jl:154
+      [5] notify (repeats 2 times)
+        @ ./condition.jl:148 [inlined]
+      [6] (::Base.var"#notifywaiters#649")(rl::ReentrantLock)
+        @ Base ./lock.jl:187
+      [7] (::Base.var"#_unlock#648")(rl::ReentrantLock)
+        @ Base ./lock.jl:183
+      [8] unlock
+        @ ./lock.jl:177 [inlined]
+      [9] jldopen(fname::String, wr::Bool, create::Bool, truncate::Bool, iotype::Type{JLD2.MmapIO}; fallback::Type{IOStream}, compress::Bool, mmaparrays::Bool, typemap::Dict{String, Any}, parallel_read::Bool)
+        @ JLD2 ~/.julia/packages/JLD2/VWinU/src/JLD2.jl:381
+     [10] jldopen
+        @ ~/.julia/packages/JLD2/VWinU/src/JLD2.jl:314 [inlined]
+     [11] #jldopen#14
+        @ ~/.julia/packages/JLD2/VWinU/src/JLD2.jl:457 [inlined]
+     [12] jldopen (repeats 2 times)
+        @ ~/.julia/packages/JLD2/VWinU/src/JLD2.jl:451 [inlined]
+     [13] macro expansion
+        @ ~/QMOC.jl/src/mpi.jl:211 [inlined]
+     [14] (::QMOC.var"#728#threadsfor_fun#82"{QMOC.var"#728#threadsfor_fun#77#83"{Vector{QMOC.KitaevNNNCircuit}, Vector{String}, String, Vector{Int64}}})(tid::Int64; onethread::Bool)
+        @ QMOC ./threadingconstructs.jl:215
+     [15] #728#threadsfor_fun
+        @ ./threadingconstructs.jl:182 [inlined]
+     [16] (::Base.Threads.var"#1#2"{QMOC.var"#728#threadsfor_fun#82"{QMOC.var"#728#threadsfor_fun#77#83"{Vector{QMOC.KitaevNNNCircuit}, Vector{String}, String, Vector{Int64}}}, Int64})()
+        @ Base.Threads ./threadingconstructs.jl:154
+Stacktrace:
+ [1] threading_run(fun::QMOC.var"#728#threadsfor_fun#82"{QMOC.var"#728#threadsfor_fun#77#83"{Vector{QMOC.KitaevNNNCircuit}, Vector{String}, String, Vector{Int64}}}, static::Bool)
+   @ Base.Threads ./threadingconstructs.jl:172
+ [2] macro expansion
+   @ ./threadingconstructs.jl:220 [inlined]
+ [3] mpi_sample_full(circuits::Vector{QMOC.KitaevNNNCircuit}, n_trajectories::Int64, thermalization_time::Int64, n_samples::Int64, sample_distance::Int64, outputname::String)
+   @ QMOC ~/QMOC.jl/src/mpi.jl:205
+ [4] top-level scope
+   @ ~/QMOC.jl/cluster/Full_KitaevNNN36_2.jl:31
+in expression starting at /home/dsimm1/QMOC.jl/cluster/Full_KitaevNNN36_2.jl:31
+srun: error: ramses11037: task 0: Exited with exit code 1
+srun: Terminating StepId=24192.0
+
+[3695491] signal (15): Terminated
+in expression starting at none:0
+
+[3691230] signal (15): Terminated
+in expression starting at none:0
+
+[146472] signal (15): Terminated
+in expression starting at none:0
+
+[3559901] signal (15): Terminated
+in expression starting at none:0
+
+[3655518] signal (15): Terminated
+in expression starting at none:0
+
+[3636030] signal (15): Terminated
+in expression starting at none:0
+
+[3636030] signal (6.-6): Aborted
+in expression starting at none:0
+
+[3629120] signal (15): Terminated
+in expression starting at none:0
+
+[3917915] signal (15): Terminated
+in expression starting at none:0
+
+[3559810] signal (15): Terminated
+in expression starting at none:0
+
+[3657221] signal (15): Terminated
+in expression starting at none:0
+
+[1275929] signal (15): Terminated
+in expression starting at none:0
+
+[3841948] signal (15): Terminated
+in expression starting at none:0
+
+[3383725] signal (15): Terminated
+in expression starting at none:0
+
+[3507426] signal (15): Terminated
+in expression starting at none:0
+
+[3513211] signal (15): Terminated
+in expression starting at none:0
+
+[3704601] signal (15): Terminated
+in expression starting at none:0
+
+[3527686] signal (15): Terminated
+in expression starting at none:0
+
+[3667373] signal (15): Terminated
+in expression starting at none:0
+
+[3501776] signal (15): Terminated
+in expression starting at none:0
+
+[3737486] signal (15): Terminated
+in expression starting at none:0
+
+[3765357] signal (15): Terminated
+in expression starting at none:0
+
+[3627156] signal (15): Terminated
+in expression starting at none:0
+
+[3471645] signal (15): Terminated
+in expression starting at none:0
+
+[3802166] signal (15): Terminated
+in expression starting at none:0
+
+[3639551] signal (15): Terminated
+in expression starting at none:0
+srun: error: ramses12005: task 7: Aborted (core dumped)
+srun: error: ramses12039: task 22: Killed
+srun: error: ramses11038: task 1: Killed
+srun: error: ramses11039: task 2: Killed
+srun: error: ramses12030: task 16: Killed
+srun: error: ramses12042: task 25: Killed
+srun: error: ramses12036: task 19: Killed
+srun: error: ramses11042: task 5: Killed
+srun: error: ramses12040: task 23: Killed
+srun: error: ramses12038: task 21: Killed
+srun: error: ramses12009: task 10: Killed
+srun: error: ramses12006: task 8: Killed
+srun: error: ramses12041: task 24: Killed
+srun: error: ramses12031: task 17: Killed
+srun: error: ramses12012: task 11: Killed
+srun: error: ramses12034: task 18: Killed
+srun: error: ramses12037: task 20: Killed
+srun: error: ramses11041: task 4: Killed
+srun: error: ramses12029: task 15: Killed
+srun: error: ramses11040: task 3: Killed
+srun: error: ramses12007: task 9: Killed
+srun: error: ramses12016: task 14: Killed
+srun: error: ramses12014: task 12: Killed
+srun: error: ramses12004: task 6: Killed
+srun: error: ramses12015: task 13: Killed
+srun: Force Terminated StepId=24192.0

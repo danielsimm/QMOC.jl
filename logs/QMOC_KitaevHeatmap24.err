@@ -1,0 +1,49 @@
+┌ Warning: The Pkg REPL mode is intended for interactive use only, and should not be used from scripts. It is recommended to use the functional API instead.
+└ @ Pkg.REPLMode ~/.julia/juliaup/julia-1.10.4+0.x64.linux.gnu/share/julia/stdlib/v1.10/Pkg/src/REPLMode/REPLMode.jl:382
+┌ Warning: The Pkg REPL mode is intended for interactive use only, and should not be used from scripts. It is recommended to use the functional API instead.
+└ @ Pkg.REPLMode ~/.julia/juliaup/julia-1.10.4+0.x64.linux.gnu/share/julia/stdlib/v1.10/Pkg/src/REPLMode/REPLMode.jl:382
+ERROR: LoadError: ArgumentError: invalid base 10 digit '.' in "1.txt"
+Stacktrace:
+  [1] tryparse_internal(::Type{Int64}, s::SubString{String}, startpos::Int64, endpos::Int64, base_::Int64, raise::Bool)
+    @ Base ./parse.jl:143
+  [2] parse(::Type{Int64}, s::SubString{String}; base::Nothing)
+    @ Base ./parse.jl:254
+  [3] parse
+    @ ./parse.jl:253 [inlined]
+  [4] _broadcast_getindex_evalf
+    @ ./broadcast.jl:709 [inlined]
+  [5] _broadcast_getindex
+    @ ./broadcast.jl:692 [inlined]
+  [6] getindex
+    @ ./broadcast.jl:636 [inlined]
+  [7] macro expansion
+    @ ./broadcast.jl:1004 [inlined]
+  [8] macro expansion
+    @ ./simdloop.jl:77 [inlined]
+  [9] copyto!
+    @ ./broadcast.jl:1003 [inlined]
+ [10] copyto!
+    @ ./broadcast.jl:956 [inlined]
+ [11] copy
+    @ ./broadcast.jl:928 [inlined]
+ [12] materialize
+    @ ./broadcast.jl:903 [inlined]
+ [13] mpi_sample_I3(circuits::Vector{QMOC.KitaevCircuit}, n_trajectories::Int64, thermalization_time::Int64, n_samples::Int64, sample_distance::Int64, outputname::String)
+    @ QMOC ~/QMOC.jl/src/mpi.jl:127
+ [14] top-level scope
+    @ ~/QMOC.jl/cluster/KitaevHeatmap12.jl:15
+in expression starting at /home/dsimm1/QMOC.jl/cluster/KitaevHeatmap12.jl:15
+srun: error: ramses12001: task 0: Exited with exit code 1
+srun: Terminating StepId=24202.0
+
+[3674496] signal (15): Terminated
+in expression starting at none:0
+
+[3674496] signal (6.-6): Aborted
+in expression starting at none:0
+
+[3600711] signal (15): Terminated
+in expression starting at none:0
+srun: error: ramses14002: task 34: Aborted (core dumped)
+srun: error: ramses14003: task 35: Killed
+srun: Force Terminated StepId=24202.0
