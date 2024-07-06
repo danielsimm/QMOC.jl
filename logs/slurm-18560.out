@@ -1,0 +1,121 @@
+┌ Warning: The Pkg REPL mode is intended for interactive use only, and should not be used from scripts. It is recommended to use the functional API instead.
+└ @ Pkg.REPLMode ~/.julia/juliaup/julia-1.10.3+0.x64.linux.gnu/share/julia/stdlib/v1.10/Pkg/src/REPLMode/REPLMode.jl:382
+Precompiling project...
+  ✓ QMOC
+  1 dependency successfully precompiled in 7 seconds. 118 already precompiled.
+┌ Warning: The Pkg REPL mode is intended for interactive use only, and should not be used from scripts. It is recommended to use the functional API instead.
+└ @ Pkg.REPLMode ~/.julia/juliaup/julia-1.10.3+0.x64.linux.gnu/share/julia/stdlib/v1.10/Pkg/src/REPLMode/REPLMode.jl:382
+
+
+
+
+---------------------------------------------
+start:2024-05-28T20:46:25.745
+---------------------------------------------
+
+
+
+
+rank 0 | Warning: more threads than work
+rank 33 | Warning: more threads than work
+rank 64 | Warning: more threads than work
+rank 96 | Warning: more threads than work
+rank 80 | Warning: more threads than work
+rank 69 | Warning: more threads than work
+rank 44 | Warning: more threads than work
+rank 66 | Warning: more threads than work
+rank 36 | Warning: more threads than work
+rank 32 | Warning: more threads than work
+rank 99 | Warning: more threads than work
+rank 70 | Warning: more threads than work
+rank 88 | Warning: more threads than work
+rank 83 | Warning: more threads than work
+rank 40 | Warning: more threads than work
+rank 82 | Warning: more threads than work
+rank 8 | Warning: more threads than work
+rank 74 | Warning: more threads than work
+rank 39 | Warning: more threads than work
+rank 72 | Warning: more threads than work
+rank 89 | Warning: more threads than work
+rank 98 | Warning: more threads than work
+rank 81 | Warning: more threads than work
+rank 6 | Warning: more threads than work
+rank 20 | Warning: more threads than work
+rank 30 | Warning: more threads than work
+rank 37 | Warning: more threads than work
+rank 77 | Warning: more threads than work
+rank 93 | Warning: more threads than work
+rank 3 | Warning: more threads than work
+rank 14 | Warning: more threads than work
+rank 65 | Warning: more threads than work
+rank 42 | Warning: more threads than work
+rank 43 | Warning: more threads than work
+rank 95 | Warning: more threads than work
+rank 75 | Warning: more threads than work
+rank 84 | Warning: more threads than work
+rank 13 | Warning: more threads than work
+rank 7 | Warning: more threads than work
+rank 27 | Warning: more threads than work
+rank 9 | Warning: more threads than work
+rank 92 | Warning: more threads than work
+rank 11 | Warning: more threads than work
+rank 31 | Warning: more threads than work
+rank 25 | Warning: more threads than work
+rank 29 | Warning: more threads than work
+rank 78 | Warning: more threads than work
+rank 91 | Warning: more threads than work
+rank 62 | Warning: more threads than work
+rank 90 | Warning: more threads than work
+rank 76 | Warning: more threads than work
+rank 86 | Warning: more threads than work
+rank 52 | Warning: more threads than work
+rank 59 | Warning: more threads than work
+rank 24 | Warning: more threads than work
+rank 79 | Warning: more threads than work
+rank 97 | Warning: more threads than work
+rank 4 | Warning: more threads than work
+rank 49 | Warning: more threads than work
+rank 87 | Warning: more threads than work
+rank 50 | Warning: more threads than work
+rank 21 | Warning: more threads than work
+rank 53 | Warning: more threads than work
+rank 2 | Warning: more threads than work
+rank 61 | Warning: more threads than work
+rank 18 | Warning: more threads than work
+rank 10 | Warning: more threads than work
+rank 35 | Warning: more threads than work
+rank 16 | Warning: more threads than work
+rank 26 | Warning: more threads than work
+rank 23 | Warning: more threads than work
+rank 73 | Warning: more threads than work
+rank 45 | Warning: more threads than work
+rank 71 | Warning: more threads than work
+rank 15 | Warning: more threads than work
+rank 12 | Warning: more threads than work
+rank 1 | Warning: more threads than work
+rank 19 | Warning: more threads than work
+rank 28 | Warning: more threads than work
+rank 22 | Warning: more threads than work
+rank 46 | Warning: more threads than work
+rank 68 | Warning: more threads than work
+rank 94 | Warning: more threads than work
+rank 85 | Warning: more threads than work
+rank 56 | Warning: more threads than work
+rank 48 | Warning: more threads than work
+rank 38 | Warning: more threads than work
+rank 41 | Warning: more threads than work
+rank 51 | Warning: more threads than work
+rank 54 | Warning: more threads than work
+rank 34 | Warning: more threads than work
+rank 17 | Warning: more threads than work
+rank 60 | Warning: more threads than work
+rank 58 | Warning: more threads than work
+rank 55 | Warning: more threads than work
+rank 47 | Warning: more threads than work
+rank 57 | Warning: more threads than work
+rank 63 | Warning: more threads than work
+rank 67 | Warning: more threads than work
+rank 5 | Warning: more threads than work
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 18560 ON ramses11001 CANCELLED AT 2024-05-28T20:48:11 ***
+slurmstepd: error: *** STEP 18560.0 ON ramses11001 CANCELLED AT 2024-05-28T20:48:11 ***

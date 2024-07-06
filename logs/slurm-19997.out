@@ -1,0 +1,87 @@
+The latest version of Julia in the `release` channel is 1.10.4+0.x64.linux.gnu. You currently have `1.10.3+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.10.4+0.x64.linux.gnu and update the `release` channel to that version.
+┌ Warning: The Pkg REPL mode is intended for interactive use only, and should not be used from scripts. It is recommended to use the functional API instead.
+└ @ Pkg.REPLMode ~/.julia/juliaup/julia-1.10.3+0.x64.linux.gnu/share/julia/stdlib/v1.10/Pkg/src/REPLMode/REPLMode.jl:382
+The latest version of Julia in the `release` channel is 1.10.4+0.x64.linux.gnu. You currently have `1.10.3+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.10.4+0.x64.linux.gnu and update the `release` channel to that version.
+┌ Warning: The Pkg REPL mode is intended for interactive use only, and should not be used from scripts. It is recommended to use the functional API instead.
+└ @ Pkg.REPLMode ~/.julia/juliaup/julia-1.10.3+0.x64.linux.gnu/share/julia/stdlib/v1.10/Pkg/src/REPLMode/REPLMode.jl:382
+The latest version of Julia in the `release` channel is 1.10.4+0.x64.linux.gnu. You currently have `1.10.3+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.10.4+0.x64.linux.gnu and update the `release` channel to that version.
+The latest version of Julia in the `release` channel is 1.10.4+0.x64.linux.gnu. You currently have `1.10.3+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.10.4+0.x64.linux.gnu and update the `release` channel to that version.
+The latest version of Julia in the `release` channel is 1.10.4+0.x64.linux.gnu. You currently have `1.10.3+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.10.4+0.x64.linux.gnu and update the `release` channel to that version.
+The latest version of Julia in the `release` channel is 1.10.4+0.x64.linux.gnu. You currently have `1.10.3+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.10.4+0.x64.linux.gnu and update the `release` channel to that version.
+ERROR: SystemError: opening file "/home/dsimm1/QMOC.jl/cluster/KitaevNNN_highpoint_40.jl": No such file or directory
+Stacktrace:
+srun: error: ramses13009: task 3: Exited with exit code 1
+srun: Terminating StepId=19997.0
+slurmstepd: error: *** STEP 19997.0 ON ramses13001 CANCELLED AT 2024-06-07T13:39:35 ***
+
+[2063497] signal (15): Terminated
+in expression starting at none:0
+  [1] systemerror(p::String, errno::Int32; extrainfo::Nothing)
+    @ Base ./error.jl:176
+  [2] systemerror
+    @ ./error.jl:175 [inlined]
+  [3] open(fname::String; lock::Bool, read::Nothing, write::Nothing, create::Nothing, truncate::Nothing, append::Nothing)
+    @ Base ./iostream.jl:293
+  [4] open
+    @ ./iostream.jl:275 [inlined]
+  [5] open(f::Base.var"#433#434"{String}, args::String; kwargs::@Kwargs{})
+    @ Base ./io.jl:394
+  [6] open
+    @ ./io.jl:393 [inlined]
+  [7] read
+    @ ./io.jl:486 [inlined]
+  [8] _include(mapexpr::Function, mod::Module, _path::String)
+    @ Base ./loading.jl:2132
+  [9] include(mod::Module, _path::String)
+    @ Base ./Base.jl:495
+ [10] exec_options(opts::Base.JLOptions)
+    @ Base ./client.jl:318
+ [11] _start()
+    @ Base ./client.jl:552
+ERROR: 
+[1799652] signal (15): Terminated
+in expression starting at none:0
+crc32c_sse42 at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/crc32c.c:116
+ijl_restore_system_image_data at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/staticdata.c:3543
+jl_load_sysimg_so at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/staticdata.c:586 [inlined]
+ijl_restore_system_image at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/staticdata.c:3515
+_finish_julia_init at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/init.c:859
+julia_init at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/init.c:844
+jl_repl_entrypoint at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/src/jlapi.c:725
+main at /cache/build/builder-amdci4-2/julialang/julia-release-1-dot-10/cli/loader_exe.c:58
+__libc_start_call_main at /lib64/libc.so.6 (unknown line)
+__libc_start_main at /lib64/libc.so.6 (unknown line)
+unknown function (ip: 0x4010b8)
+unknown function (ip: (nil))
+Allocations: 0 (Pool: 0; Big: 0); GC: 0
+srun: error: ramses13003: task 1: Terminated
+
+[1831965] signal (15): Terminated
+in expression starting at none:0
+srun: error: ramses13001: task 0: Killed
+srun: error: ramses13006: task 2: Killed
+srun: Force Terminated StepId=19997.0

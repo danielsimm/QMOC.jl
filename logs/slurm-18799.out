@@ -1,0 +1,20 @@
+┌ Warning: The Pkg REPL mode is intended for interactive use only, and should not be used from scripts. It is recommended to use the functional API instead.
+└ @ Pkg.REPLMode ~/.julia/juliaup/julia-1.10.3+0.x64.linux.gnu/share/julia/stdlib/v1.10/Pkg/src/REPLMode/REPLMode.jl:382
+┌ Warning: The Pkg REPL mode is intended for interactive use only, and should not be used from scripts. It is recommended to use the functional API instead.
+└ @ Pkg.REPLMode ~/.julia/juliaup/julia-1.10.3+0.x64.linux.gnu/share/julia/stdlib/v1.10/Pkg/src/REPLMode/REPLMode.jl:382
+
+
+
+
+---------------------------------------------
+start:2024-05-29T16:34:47.197
+---------------------------------------------
+
+
+
+
+rank 0 | running with 192 threads | 192 trajectories to sample...
+rank 1 | running with 192 threads | 192 trajectories to sample...
+slurmstepd: error: *** JOB 18799 ON ramses11018 CANCELLED AT 2024-05-30T04:34:55 DUE TO TIME LIMIT ***
+slurmstepd: error: *** STEP 18799.0 ON ramses11018 CANCELLED AT 2024-05-30T04:34:55 DUE TO TIME LIMIT ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
