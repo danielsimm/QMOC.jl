@@ -43,7 +43,7 @@ function sample_full(circuit, thermalization_time, n_samples, sample_distance; f
 		for _ in 1:sample_distance
 			apply!(state, circuit, ops)
 		end
-		I3 += mean(tmi(state, circuit))
+		I3 += 0.0 #mean(tmi(state, circuit))
 		EE .+= entropy(state, circuit)
 	end
 	I3 = I3 / n_samples
