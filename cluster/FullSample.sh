@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=192
 #SBATCH -p smp
-#SBATCH -J "QMOC_FullKitaevNNN72"
+#SBATCH -J "QMOC_FullKekule72"
 #SBATCH --time=48:00:00
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=simm@thp.uni-koeln.de
@@ -15,4 +15,4 @@
 cd QMOC.jl/
 julia --project -e 'using Pkg; pkg"instantiate"'
 julia --project -e 'using Pkg; pkg"precompile"'
-srun -n 26 julia -t192 --project cluster/Full_KitaevNNN72.jl
+srun -n 26 julia -t192 --project cluster/Full_Kekule72.jl
