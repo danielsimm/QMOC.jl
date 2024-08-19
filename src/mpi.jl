@@ -337,10 +337,12 @@ function mpi_sample_full_purification(
 	### do work ###
 	Threads.@threads for this_work in todo
 		trajectory_id, circuit_id = this_work
-		circuit = circuits[circuit_id]
-		filename = "cluster/$(outputname)/idx$(circuit_id)_$(trajectory_id).jld2"
-		sample_full_purification(circuit, timesteps; filename = filename)
-		println("rank $rank | trajectory $(trajectory_id) of circuit $(circuit_id) -- done")
+		if !isfile("cluster/$(outputname)/idx$(circuit_id)_entropy_mean.txt")
+			circuit = circuits[circuit_id]
+			filename = "cluster/$(outputname)/idx$(circuit_id)_$(trajectory_id).jld2"
+			sample_full_purification(circuit, timesteps; filename = filename)
+			println("rank $rank | trajectory $(trajectory_id) of circuit $(circuit_id) -- done")
+		end
 	end
 	###############
 
