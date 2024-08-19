@@ -350,6 +350,6 @@ function mpi_sample_full_purification(
 		folder = "cluster/$(outputname)"
 		sample_purification_cleanup(folder, timesteps)
 		finaltime()
-		MPI.Finalize()
 	end
+	MPI.Finalize()
 end
