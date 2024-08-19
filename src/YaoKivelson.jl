@@ -198,6 +198,19 @@ function apply!(stabilizer, c::YaoKivelsonOrientableCircuit, operators)
 	return nothing
 end
 
+function apply_single!(stabilizer, c::YaoKivelsonOrientableCircuit, operators)
+	J = c.params[1] # probability of triangular measurement, orientable: silence triangular Z bond, non-orientable: all bonds
+	# K = c.params[2] # probability of hexagonal/Kitaev-style measurement
+	A = 4 * c.size^2
+	B = 3 * c.size^2
+	if rand() < J
+		project!(stabilizer, operators[rand(1:A)], keep_result = false, phases = false)
+	else
+		project!(stabilizer, operators[A+rand(1:B)], keep_result = false, phases = false)
+	end
+	return nothing
+end
+
 function apply!(stabilizer, c::YaoKivelsonNonorientableCircuit, operators)
 	J = c.params[1] # probability of triangular measurement, orientable: silence triangular Z bond, non-orientable: all bonds
 	# K = c.params[2] # probability of hexagonal/Kitaev-style measurement
@@ -209,6 +222,19 @@ function apply!(stabilizer, c::YaoKivelsonNonorientableCircuit, operators)
 		else
 			project!(stabilizer, operators[A+rand(1:B)], keep_result = false, phases = false)
 		end
+	end
+	return nothing
+end
+
+function apply_single!(stabilizer, c::YaoKivelsonNonorientableCircuit, operators)
+	J = c.params[1] # probability of triangular measurement, orientable: silence triangular Z bond, non-orientable: all bonds
+	# K = c.params[2] # probability of hexagonal/Kitaev-style measurement
+	A = 6 * c.size^2
+	B = 3 * c.size^2
+	if rand() < J
+		project!(stabilizer, operators[rand(1:A)], keep_result = false, phases = false)
+	else
+		project!(stabilizer, operators[A+rand(1:B)], keep_result = false, phases = false)
 	end
 	return nothing
 end
