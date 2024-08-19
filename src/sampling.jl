@@ -1,9 +1,9 @@
 function sample_I3(circuit, thermalization_time, n_samples, sample_distance; filename = nothing)
-    if filename != nothing
-        if isfile(filename)
-            return nothing
-        end
-    end
+	if filename != nothing
+		if isfile(filename)
+			return nothing
+		end
+	end
 	ops = get_operators(circuit)
 	I3 = 0.0
 	state = initial_state(circuit)
@@ -27,10 +27,10 @@ end
 
 function sample_full(circuit, thermalization_time, n_samples, sample_distance; filename = nothing)
 	if filename != nothing
-        if isfile(filename)
-            return nothing
-        end
-    end
+		if isfile(filename)
+			return nothing
+		end
+	end
 	ops = get_operators(circuit)
 	I3 = 0.0
 	EE = zeros(length(subsystem_labels(circuit)))
@@ -57,12 +57,12 @@ end
 
 function sample_free_purification(circuit, timesteps; filename = nothing)
 	if filename != nothing
-        if isfile(filename)
-            return nothing
-        end
-    end
+		if isfile(filename)
+			return nothing
+		end
+	end
 	ops = get_operators(circuit)
-	entropy = zeros(timesteps+1)
+	entropy = zeros(timesteps + 1)
 	state = initial_mixed_state(circuit)
 	entropy[1] = circuit.nqubits - QuantumClifford.rank(state)
 	#thermalization
@@ -84,24 +84,27 @@ function sample_purification_cleanup(folder, timesteps)
 
 	Threads.@threads for idx in idx_array
 		this_files = filter(contains("idx$(idx)_"), to_read)
-		entropies = zeros(length(this_files), timesteps+1)
+		entropies = zeros(length(this_files), timesteps + 1)
 		for i in eachindex(this_files)
 			file = this_files[i]
 			entropies[i, :] = jldopen("$(folder)/$(file)")["entropy"]
 			rm("$(folder)/$(file)")
 		end
-		writedlm("$(folder)/idx$(idx)_entropy.txt", entropies)
-		end
+		means = mean(entropies, dims = 1)
+		stds = std(entropies, dims = 1)
+		errs = stds ./ sqrt(size(entropies, 1))
+		writedlm("$(folder)/idx$(idx)_entropy_mean.txt", [means stds errs])
+	end
 end
 
 function sample_full_purification(circuit, timesteps; filename = nothing)
 	if filename != nothing
-        if isfile(filename)
-            return nothing
-        end
-    end
+		if isfile(filename)
+			return nothing
+		end
+	end
 	ops = get_operators(circuit)
-	entropy = zeros(timesteps+1)
+	entropy = zeros(timesteps + 1)
 	state = QuantumClifford.MixedDestabilizer(zero(QuantumClifford.Stabilizer, 1, circuit.nqubits))
 	entropy[1] = circuit.nqubits
 	#thermalization
