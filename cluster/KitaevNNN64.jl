@@ -3,8 +3,8 @@ using JLD2
 using DelimitedFiles
 
 
-L = 60
-Kc = 0.734
+L = 64
+Kc = 0.672
 dK1 = 8.0
 dK2 = 2.0
 nu = 0.93

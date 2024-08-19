@@ -20,9 +20,9 @@ pys = pzs = (1 .- pxs)./2
 params = [[pxs[i], pys[i], pzs[i]] for i in eachindex(pxs)]
 circuits = [QMOC.KitaevCircuit(L, params[i]) for i in eachindex(params)]
 
-n_trajectories = 192
+n_trajectories = 96
 thermalization_time = 2*L + 20
-n_samples = 60
+n_samples = 5
 sample_distance = 1
 
 println("Kitaev L = $(L)")
