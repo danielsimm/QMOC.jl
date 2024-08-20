@@ -109,7 +109,9 @@ function sample_full_purification(circuit, timesteps; filename = nothing)
 	entropy[1] = circuit.nqubits
 	#thermalization
 	for i in 1:timesteps
-		apply_single!(state, circuit, ops)
+		for _ in 1:20
+			apply_single!(state, circuit, ops)
+		end
 		entropy[i+1] = circuit.nqubits - QuantumClifford.rank(state)
 	end
 	if filename != nothing

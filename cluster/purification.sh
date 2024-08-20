@@ -1,18 +1,18 @@
 #!/bin/bash -l
 #SBATCH --exclusive
-#SBATCH --nodes=30
+#SBATCH --nodes=40
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=192
 #SBATCH -p smp
-#SBATCH -J "QMOC_YKFullPurificationDetail24"
+#SBATCH -J "QMOC_KitaevFullPurificationDetail24"
 #SBATCH --time=20:00:00
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=simm@thp.uni-koeln.de
 #SBATCH -A ag-trebst
-#SBATCH --output=YKFullPurificationDetail24.out
-#SBATCH --error=YKFullPurificationDetail24.err
+#SBATCH --output=KitaevFullPurificationDetail24.out
+#SBATCH --error=KitaevFullPurificationDetail24.err
 
 cd QMOC.jl/
 julia --project -e 'using Pkg; pkg"instantiate"'
 julia --project -e 'using Pkg; pkg"precompile"'
-srun -n 30 julia -t192 --project cluster/YKFullPurification.jl
+srun -n 40 julia -t192 --project cluster/KitaevFullPurification24.jl
